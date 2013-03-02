@@ -5,15 +5,16 @@ import com.csc2013.DungeonMaze.MoveType;
 
 public class MapBox {
     
-    final BoxType North;
-    final BoxType South;
-    final BoxType East;
-    final BoxType West;
+	public final BoxType North;
+	public final BoxType South;
+	public final BoxType East;
+	public final BoxType West;
 
-    final MoveType NorthMove;
-    final MoveType SouthMove;
-    final MoveType EastMove;
-    final MoveType WestMove;
+	public final MoveType NorthMove;
+	public final MoveType SouthMove;
+	public final MoveType EastMove;
+	public final MoveType WestMove;
+	
     private boolean hasConsumable;
     private boolean isEnd;
     String ConsumableType = null;

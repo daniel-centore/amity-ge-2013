@@ -1,7 +1,9 @@
-package com.csc2013;
+package com.solution2013;
 
 import org.newdawn.slick.SlickException;
 
+import com.csc2013.DungeonMaze;
+import com.csc2013.PlayerVision;
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.MoveType;
@@ -13,14 +15,16 @@ import com.csc2013.DungeonMaze.MoveType;
  * @author [School/Team Name]
  *
  */
-public class SchoolPlayer {
-	
+public class SchoolPlayer
+{
+
 	/**
 	 * Constructor.
 	 * 
 	 * @throws SlickException
 	 */
-	public SchoolPlayer() throws SlickException {
+	public SchoolPlayer() throws SlickException
+	{
 		// complete
 	}
 
@@ -36,7 +40,10 @@ public class SchoolPlayer {
 	 * @param lastAction
 	 * @return Action
 	 */
-	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction) {
+	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
+	{
+		
+		
 		return null;
 	}
 }

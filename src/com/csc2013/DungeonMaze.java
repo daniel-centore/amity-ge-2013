@@ -5,6 +5,8 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import com.solution2013.SchoolPlayer;
+
 /**
  * 
  * This class contains the logic to run a DungeonMaze game.
@@ -189,7 +191,6 @@ public class DungeonMaze extends BasicGame {
                 try {
 					container.reinit();
 				} catch (SlickException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }

@@ -6,17 +6,17 @@ import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.MoveType;
 
 public class PlayerVision {
-    MapBox CurrentPoint;
+    public MapBox CurrentPoint;
     
-    MapBox[] North;
-    MapBox[] South;
-    MapBox[] East;
-    MapBox[] West;
+    public MapBox[] North;
+    public MapBox[] South;
+    public MapBox[] East;
+    public MapBox[] West;
     
-    int mNorth;
-    int mSouth;
-    int mEast;
-    int mWest;
+    public int mNorth;
+    public int mSouth;
+    public int mEast;
+    public int mWest;
     public static int distanceToView = 1;
     
     
