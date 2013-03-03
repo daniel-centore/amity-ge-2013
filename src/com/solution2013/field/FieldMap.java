@@ -150,16 +150,18 @@ public class FieldMap
 
 	public void applyPickupKey()
 	{
-//		Dijkstras dij = new Dijkstras(1, this);
+		Dijkstras dij = new Dijkstras(1, this);
 		
-//		try
-//		{
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e)
-//		{
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		dij.shortestToType(getLocation(), BoxType.Door);
+		
+		try
+		{
+			Thread.sleep(2000);
+		} catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		map.get(location).setType(BoxType.Open);
 	}
 

@@ -21,7 +21,7 @@ public class Dijkstras
 	{
 		this.keys = keys;
 		this.map = map;
-		
+
 		// shortest to exit
 		// shortest to unexplored
 		// shortest to door
@@ -30,74 +30,81 @@ public class Dijkstras
 	public DijResult shortestToType(Point start, BoxType type)
 	{
 		HashMap<Space, SpaceWrapper> vertices = wrap(map.getUnblockedSpaces(), start);
-		
+
 		while (true)
 		{
 			// Is the end still in the graph?
 			for (SpaceWrapper sw : vertices.values())
 			{
-				if (sw.getSpace().getType() == type && sw.isRemoved())		// this is what we were looking for
+				Space space = sw.getSpace();
+
+				if ((space != null && space.getType() == type) || (space == null && type == null)) // this is what we were looking for
 				{
-					SpaceWrapper path = sw;
-					do{
-						System.out.println(path.space);
-						path = path.previous;
-						
-					} while (path != null);
-					
-					return null;
+					if (sw.isRemoved())
+					{
+						SpaceWrapper path = sw;
+						do
+						{
+							System.out.println(path.space);
+							path = path.previous;
+
+						} while (path != null);
+
+						return null;
+					}
 				}
 			}
-			
-			
+
 			// Choose the vertex with the least distance
 			SpaceWrapper min = min(vertices.values());
-			if (min == null)		// no path to an exit
+			if (min == null) // no path to an exit
 				return null;
-			
+
 			// Remove it from the graph
-			
+
 			min.setRemoved(true);
-			
-			
-			// Calculate distances between it and neighbors still in the graph
-			for (Space sp : min.getSpace().getSurrounding())
+
+			if (min.getSpace() != null)
 			{
-				if (sp == null)	// ignore null spaces. not looking for those here.
-					continue;
-				
-				SpaceWrapper wrap = vertices.get(sp);
-				
-				if (wrap.isRemoved())		// don't care about these
-					continue;
-				
-				int length = min.length + sp.difficulty();
-				
-				if (length < wrap.getLength())
+				// Calculate distances between it and neighbors still in the graph
+				for (Space sp : min.getSpace().getSurrounding())
 				{
-					wrap.setLength(length);
-					wrap.setPrevious(min);
+					if (sp == null && type != null) // ignore null spaces. not looking for those here.
+						continue;
+
+					SpaceWrapper wrap = vertices.get(sp);
+
+					if (wrap.isRemoved()) // don't care about these
+						continue;
+
+					int length = min.length + (sp == null ? 1 : sp.difficulty());		// default difficulty for unknown space is 1
+
+					if (length < wrap.getLength())
+					{
+						wrap.setLength(length);
+						wrap.setPrevious(min);
+					}
 				}
 			}
 		}
 	}
-	
+
 	private SpaceWrapper min(Collection<SpaceWrapper> collection)
 	{
 		SpaceWrapper shortest = null;
 		Iterator<SpaceWrapper> itr = collection.iterator();
-		
+
 		while (itr.hasNext())
 		{
 			SpaceWrapper next = itr.next();
-			
+
 			if (!next.isRemoved())
 			{
 				if (shortest == null || shortest.length > next.length)
 					shortest = next;
 			}
 		}
-		
+
 		return shortest;
 	}
 
@@ -105,29 +112,33 @@ public class Dijkstras
 	{
 		return null;
 	}
-	
+
 	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
 	{
 		HashMap<Space, SpaceWrapper> result = new HashMap<>();
-		
+
+		// Add the null value (indicates unknown region)
+		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
+
+		// Add all the other values
 		for (Space sp : spaces)
 		{
 			int dist = Integer.MAX_VALUE;
 			if (sp.getPoint().equals(start))
 				dist = 0;
-			
+
 			result.put(sp, new SpaceWrapper(dist, sp));
 		}
-		
+
 		return result;
 	}
 
-	class SpaceWrapper		// for dijkstras
+	class SpaceWrapper // for dijkstras
 	{
-		private SpaceWrapper previous;		// prev element in chain
-		private int length;		// total dist
-		private Space space;	// space attached to this
-		private boolean removed;	// removed once we visited
+		private SpaceWrapper previous; // prev element in chain
+		private int length; // total dist
+		private Space space; // space attached to this
+		private boolean removed; // removed once we visited
 
 		public SpaceWrapper(int length, Space space)
 		{
