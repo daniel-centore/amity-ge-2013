@@ -1,5 +1,6 @@
 package com.solution2013.field;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,16 +59,16 @@ public class Space
 	{
 		ArrayList<Space> result = new ArrayList<>(4);
 		
-		if (north != null)
+		if (north == null || north.type != BoxType.Blocked)
 			result.add(north);
 		
-		if (south != null)
+		if (south == null || south.type != BoxType.Blocked)
 			result.add(south);
 		
-		if (east != null)
+		if (east == null || east.type != BoxType.Blocked)
 			result.add(east);
 		
-		if (west != null)
+		if (west == null || west.type != BoxType.Blocked)
 			result.add(west);
 		
 		return result;
@@ -130,11 +131,43 @@ public class Space
 	{
 		return y;
 	}
+	
+	public Point getPoint()
+	{
+		return new Point(x, y);
+	}
 
 	@Override
 	public String toString()
 	{
 		return "Space [type=" + type + ", x=" + x + ", y=" + y + "]";
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + x;
+		result = prime * result + y;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Space other = (Space) obj;
+		if (x != other.x)
+			return false;
+		if (y != other.y)
+			return false;
+		return true;
 	}
 
 }

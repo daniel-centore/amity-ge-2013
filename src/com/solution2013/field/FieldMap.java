@@ -1,12 +1,15 @@
 package com.solution2013.field;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
+import com.solution2013.Dijkstras;
 
 public class FieldMap
 {
@@ -147,6 +150,16 @@ public class FieldMap
 
 	public void applyPickupKey()
 	{
+//		Dijkstras dij = new Dijkstras(1, this);
+		
+//		try
+//		{
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		map.get(location).setType(BoxType.Open);
 	}
 
@@ -171,6 +184,29 @@ public class FieldMap
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 		
+	}
+	
+	public List<Space> getUnblockedSpaces()
+	{
+		ArrayList<Space> result = new ArrayList<>();
+		
+		for (Space sp : map.values())
+		{
+			if (sp.getType() != BoxType.Blocked)
+				result.add(sp);
+		}
+		
+		return result;
+	}
+
+	public HashMap<Point, Space> getMap()
+	{
+		return map;
+	}
+
+	public Point getLocation()
+	{
+		return location;
 	}
 
 }
