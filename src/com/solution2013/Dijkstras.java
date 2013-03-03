@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
+import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.solution2013.field.FieldMap;
@@ -27,7 +29,64 @@ public class Dijkstras
 		// shortest to door
 	}
 
-	public DijResult shortestToType(Point start, BoxType type)
+	public Action getNext()
+	{
+		// Find shortest path to an exit
+		Stack<SpaceWrapper> toExit = shortestToType(map.getLocation(), BoxType.Exit);
+		if (toExit != null)
+			return toAction(directionOf(toExit));
+		
+		// If standing on key, grab it
+		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
+			return Action.Pickup;
+		
+		return null;
+			
+	}
+	
+	private Action toAction(Direction d)
+	{
+		switch (d)
+		{
+		case East:
+			return Action.East;
+
+		case North:
+			return Action.North;
+		
+		case South:
+			return Action.South;
+
+		case West:
+			return Action.West;
+		}
+		
+		throw new RuntimeException("Not possible");
+	}
+
+	/**
+	 * Finds the direction between the first two moves on the stack (ie from point a to b)
+	 * @param toExit
+	 * @return
+	 */
+	private Direction directionOf(Stack<SpaceWrapper> toExit)
+	{
+		Point a = toExit.pop().getSpace().getPoint();
+		Point b = toExit.pop().getSpace().getPoint();
+
+		if (b.y + 1 == a.y)
+			return Direction.North;
+		if (b.y == a.y + 1)
+			return Direction.South;
+		if (b.x + 1 == a.x)
+			return Direction.East;
+		if (b.x == a.x + 1)
+			return Direction.West;
+
+		throw new RuntimeException("Bad stack: " + toExit.toString());
+	}
+
+	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
 	{
 		HashMap<Space, SpaceWrapper> vertices = wrap(map.getUnblockedSpaces(), start);
 
@@ -42,22 +101,24 @@ public class Dijkstras
 				{
 					if (sw.isRemoved())
 					{
+						Stack<SpaceWrapper> fullPath = new Stack<>();
+
 						SpaceWrapper path = sw;
 						do
 						{
-							System.out.println(path.space);
+							fullPath.push(path);
 							path = path.previous;
 
 						} while (path != null);
 
-						return null;
+						return fullPath;
 					}
 				}
 			}
 
 			// Choose the vertex with the least distance
 			SpaceWrapper min = min(vertices.values());
-			if (min == null) // no path to an exit
+			if (min == null) // no path to our goal
 				return null;
 
 			// Remove it from the graph
@@ -77,7 +138,7 @@ public class Dijkstras
 					if (wrap.isRemoved()) // don't care about these
 						continue;
 
-					int length = min.length + (sp == null ? 1 : sp.difficulty());		// default difficulty for unknown space is 1
+					int length = min.length + (sp == null ? 1 : sp.difficulty()); // default difficulty for unknown space is 1
 
 					if (length < wrap.getLength())
 					{
