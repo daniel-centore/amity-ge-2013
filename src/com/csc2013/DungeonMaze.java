@@ -159,7 +159,7 @@ public class DungeonMaze extends BasicGame {
 			
 		    if(curPlayer == PlayerType.Human) {
 		    	PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
-//		    	testMap.fillIn(vision);
+		    	testMap.fillVision(vision);
 				if (container.getInput().isKeyDown(Input.KEY_LEFT))
 				{
 					show = true;
@@ -168,7 +168,7 @@ public class DungeonMaze extends BasicGame {
 					if (lastAction == true)
 					{
 						steps++;
-//						testMap.applyMove(FieldMap.WEST);
+						testMap.applyMove(Direction.West);
 					}
 				}
 				else if (container.getInput().isKeyDown(Input.KEY_RIGHT))
@@ -179,7 +179,7 @@ public class DungeonMaze extends BasicGame {
 					if (lastAction == true)
 					{
 						steps++;
-//						testMap.applyMove(FieldMap.EAST);
+						testMap.applyMove(Direction.East);
 					}
 				}
 				else if (container.getInput().isKeyDown(Input.KEY_UP))
@@ -190,7 +190,7 @@ public class DungeonMaze extends BasicGame {
 					if (lastAction == true)
 					{
 						steps++;
-//						testMap.applyMove(FieldMap.NORTH);
+						testMap.applyMove(Direction.North);
 					}
 				}
 				else if (container.getInput().isKeyDown(Input.KEY_DOWN))
@@ -201,14 +201,14 @@ public class DungeonMaze extends BasicGame {
 					if (lastAction == true)
 					{
 						steps++;
-//						testMap.applyMove(FieldMap.SOUTH);
+						testMap.applyMove(Direction.South);
 					}
 				}
 				else if (container.getInput().isKeyDown(Input.KEY_SPACE))
 				{
 					show = true;
 					lastAction = player.move(Action.Pickup);
-//					testMap.applyPickupKey();
+					testMap.applyPickupKey();
 					if (lastAction == true)
 					{
 						steps++;
@@ -218,7 +218,7 @@ public class DungeonMaze extends BasicGame {
 				{
 					show = true;
 					lastAction = player.move(Action.Use);
-//					testMap.applyOpenDoor();
+					testMap.applyOpenDoor();
 					if (lastAction == true)
 					{
 						steps++;
