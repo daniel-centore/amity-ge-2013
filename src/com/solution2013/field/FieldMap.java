@@ -22,7 +22,6 @@ public class FieldMap
 		fillSurrounding(vision.CurrentPoint, location.x, location.y);
 		
 		// North
-		
 		for (int i = 0; i < vision.mNorth; i++)
 			fillSurrounding(vision.North[i], location.x, location.y + i + 1);
 		

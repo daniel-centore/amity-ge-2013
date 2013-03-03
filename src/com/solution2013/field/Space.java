@@ -37,6 +37,23 @@ public class Space
 		return type;
 	}
 	
+	public int difficulty()
+	{
+		switch(type)
+		{
+		case Blocked:
+		case Door:
+			return Integer.MAX_VALUE;
+
+		case Exit:
+		case Key:
+		case Open:
+			return 1;
+		}
+		
+		throw new RuntimeException("This should not be possible");
+	}
+	
 	public List<Space> getSurrounding()
 	{
 		ArrayList<Space> result = new ArrayList<>(4);
