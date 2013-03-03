@@ -107,15 +107,6 @@ public class SchoolPlayer
 		else
 			currentStack = null; // force a recalculation next time. We just opened a door.
 
-		try
-		{
-			Thread.sleep(10);
-		} catch (InterruptedException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-//		System.out.println(act);
 		return act;
 	}
 

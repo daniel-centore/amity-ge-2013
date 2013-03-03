@@ -26,8 +26,6 @@ public class Space
 	private final int x;
 	private final int y;
 
-	private boolean beenTo = false;
-
 	public Space(int x, int y, BoxType type)
 	{
 		this.x = x;

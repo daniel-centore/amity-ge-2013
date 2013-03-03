@@ -9,7 +9,6 @@ import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
-import com.solution2013.Dijkstras;
 
 public class FieldMap
 {
@@ -173,7 +172,6 @@ public class FieldMap
 		p = new Point(location.x - 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
-		
 	}
 	
 	public List<Space> getUnblockedSpaces()

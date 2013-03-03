@@ -19,6 +19,7 @@ public class Dijkstras
 {
 	class GetKeyException extends Exception
 	{
+		private static final long serialVersionUID = 1L;
 	}
 
 	private int keys;
@@ -28,10 +29,6 @@ public class Dijkstras
 	{
 		this.keys = keys;
 		this.map = map;
-
-		// shortest to exit
-		// shortest to unexplored
-		// shortest to door
 	}
 
 	public Stack<SpaceWrapper> getNext() throws GetKeyException
