@@ -48,9 +48,11 @@ public class Dijkstras
 		{
 			int dist = toCloseKey.size();
 			
-			if (keys == 0 && dist <5)
+			dist -= 1;		// don't include the space we're on
+			
+			if (keys == 0 && dist <= 5 )
 				return toCloseKey;
-			else if (keys == 1 & dist < 2)
+			else if (keys == 1 & dist <= 2)
 				return toCloseKey;
 			else if (keys == 2 && dist == 1)
 				return toCloseKey;
@@ -118,6 +120,9 @@ public class Dijkstras
 
 		Stack<SpaceWrapper> min;
 		Iterator<Stack<SpaceWrapper>> itr = possiblePaths.iterator();
+		if (!itr.hasNext())		// It is impossible to do anything
+			throw new RuntimeException("This map is impossible to solve in the current state.\nWe've explored all unexplored areas and used all key+door combinations.");
+		
 		min = itr.next();
 		while (itr.hasNext())
 		{

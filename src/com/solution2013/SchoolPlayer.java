@@ -99,7 +99,10 @@ public class SchoolPlayer
 		
 		// Pickup key if we are on top of it and we are not on the way to an exit already
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key && currentStack.lastElement().getSpace().getType() != BoxType.Exit)
+		{
+			currentStack = null;
 			return Action.Pickup;
+		}
 		
 		Action act = toAction(currentStack);
 		if (act != Action.Use)
