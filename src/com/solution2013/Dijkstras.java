@@ -8,9 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
-import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
-import com.csc2013.DungeonMaze.Direction;
 import com.solution2013.field.FieldMap;
 import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
@@ -85,11 +83,6 @@ public class Dijkstras
 
 					// find path to closest door from the key
 					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
-
-//					System.out.println(toKey.firstElement().getSpace().getPoint());
-//					System.out.println(toKey);
-//					System.out.println(toDoor);
-//					System.out.println("----");
 
 					if (toDoor == null) // No paths to doors - no point in looking for these
 						break;

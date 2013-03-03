@@ -10,17 +10,23 @@ import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
 
+
 public class FieldMap
 {
+	// Map of how much we know of the maze
 	private HashMap<Point, Space> map = new HashMap<>();
 
-	// Player's curr loc rel to 0,0 initial pos
+	
+	// Player's current location
 	private Point location = new Point(0, 0);
 
+	/**
+	 * Fills in our map with as much information as can be derived from the {@link PlayerVision}
+	 * @param vision The {@link PlayerVision} we are pulling info from
+	 */
 	public void fillVision(PlayerVision vision)
 	{
 		// Current square
-
 		fillSurrounding(vision.CurrentPoint, location.x, location.y);
 		
 		// North
@@ -43,6 +49,12 @@ public class FieldMap
 			fillSurrounding(vision.West[i], location.x - i - 1, location.y);
 	}
 
+	/**
+	 * Fills in information of all the squares surrounding a {@link MapBox}
+	 * @param box The {@link MapBox} to extract the info from. Must be either Open or a Key.
+	 * @param x X coordinate of the square
+	 * @param y Y coordinate of the square
+	 */
 	private void fillSurrounding(MapBox box, int x, int y)
 	{
 		BoxType type = BoxType.Open; // Assume it's open as we only get spaces that we can walk on
@@ -61,12 +73,11 @@ public class FieldMap
 	/**
 	 * If a space already exists, verify that it is correct.
 	 * If it doesn't, add it and link it to surrounding nodes.
-	 * 
 	 * @throws RuntimeException If the space already exists and the previous type contrasts with the new one
-	 * @param x
-	 * @param y
-	 * @param type
-	 * @return
+	 * @param x X coordinate of the {@link Space}
+	 * @param y Y coordinate of the {@link Space}
+	 * @param type The type of space it is
+	 * @return The {@link Space} which either already existed in the map or which we added.
 	 */
 	private Space saveSpace(int x, int y, BoxType type)
 	{
@@ -86,7 +97,7 @@ public class FieldMap
 			Space sp = new Space(x, y, type);		// add space
 			map.put(p, sp);
 			
-			// link to surroundings
+			// link space to surroundings
 			
 			Point n = new Point(x, y + 1);
 			Point s = new Point(x, y - 1);
@@ -125,6 +136,10 @@ public class FieldMap
 		}
 	}
 
+	/**
+	 * Let's the map know that we moved in a direction
+	 * @param dir The {@link Direction} we moved in
+	 */
 	public void applyMove(Direction dir)
 	{
 		switch (dir)
@@ -147,11 +162,17 @@ public class FieldMap
 		}
 	}
 
+	/**
+	 * Let's the map know we just picked up a key on the space we're on.
+	 */
 	public void applyPickupKey()
 	{
 		map.get(location).setType(BoxType.Open);
 	}
 
+	/**
+	 * Let's the map know we just opened a door.
+	 */
 	public void applyOpenDoor()
 	{
 		Point p;
@@ -174,6 +195,11 @@ public class FieldMap
 			sp.setType(BoxType.Open);
 	}
 	
+	/**
+	 * Collects a {@link List} of all the {@link Space}s in our map which are not blocked.
+	 * This function includes doors.
+	 * @return The list
+	 */
 	public List<Space> getUnblockedSpaces()
 	{
 		ArrayList<Space> result = new ArrayList<>();
@@ -187,11 +213,20 @@ public class FieldMap
 		return result;
 	}
 
+	/**
+	 * Gets the entire map. The key is the {@link Point} the {@link Space} is located on relative to (0,0) being the initial position.
+	 * North, South, East, and West are +y,-y,+x,-x respectively. Please do not edit the map.
+	 * @return The map.
+	 */
 	public HashMap<Point, Space> getMap()
 	{
 		return map;
 	}
 
+	/**
+	 * Our player's current location relative to (0,0) being their initial position.
+	 * @return Their location
+	 */
 	public Point getLocation()
 	{
 		return location;
