@@ -9,23 +9,29 @@ import com.csc2013.DungeonMaze.BoxType;
 /**
  * A single space on the board
  * 
- * @author drdanielfc
+ * @author Daniel Centore
  *
  */
 public class Space
 {
 	private BoxType type; // type of space we are
 
-	// null means we dunno
+	// What space lies in each of the 4 cardinal directions. Null indicates unknown.
 	private Space north = null;
 	private Space south = null;
 	private Space east = null;
 	private Space west = null;
 
-	// x,y coords relative to 0,0 start
+	// The (x,y) coordinate of this space
 	private final int x;
 	private final int y;
 
+	/**
+	 * Creates a space
+	 * @param x X coordinate of the space
+	 * @param y Y coordinate of the space
+	 * @param type The {@link BoxType} of the space.
+	 */
 	public Space(int x, int y, BoxType type)
 	{
 		this.x = x;
@@ -38,41 +44,56 @@ public class Space
 		return type;
 	}
 
+	/**
+	 * Finds the difficulty of traversing this node
+	 * @param t Our end goal when using this in Dijkstra's algorithm.
+	 * 			Just for error checking - you can safely set this to null if this space is not a door.
+	 * @param keys Number of keys we have.
+	 * @throws RuntimeException If this space is a door and t is not a door (ie we are not looking for one)
+	 * @return The difficulty of traversing the node.
+	 */
 	public int difficulty(BoxType t, int keys)
 	{
 		switch (type)
 		{
 		case Blocked:
 			return Integer.MAX_VALUE;
-			
-			
+
 		case Door:
 			if (t == BoxType.Door)
-				return 1;	// if we are looking for a door then give it a weight of one
+				return 1; // if we are looking for a door then give it a weight of one
 			else
-				return 2000;		// otherwise, it is impassable
+				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
 
 		case Key:
 			return 1;
-			
+
 		case Exit:
 		case Open:
-			if (keys == 0)		// Prefer paths with keys if we have none
+			if (keys == 0) // Prefer paths with keys if we have none
 				return 5;
 			if (keys == 1)
 				return 2;
-			
+
 			return 1;
 		}
 
 		throw new RuntimeException("This should not be possible");
 	}
 
+	/**
+	 * Gets a list of surrounding nodes.
+	 * This includes null (unknown) spaces as long as this {@link Space} is not a door.
+	 * This does NOT include walls.
+	 * This is because a Door does not have direct access to the unknown areas so we don't want to include that
+	 * 	in our calculations.
+	 * @return A {@link List} of surrounding spaces.
+	 */
 	public List<Space> getSurrounding()
 	{
 		ArrayList<Space> result = new ArrayList<>(4);
 
-		if (type == BoxType.Door)		// If we are a door, we have no access to the great beyond
+		if (type == BoxType.Door) // If we are a door, we do not have direct access to the unknown (null) areas.
 		{
 			if (north != null && north.type != BoxType.Blocked)
 				result.add(north);
@@ -104,11 +125,13 @@ public class Space
 		return result;
 	}
 
+	/**
+	 * Sets the type of this space.
+	 * You should really only be setting this to empty after opening a door or picking up a key.
+	 * @param type The {@link BoxType} to set it to.
+	 */
 	public void setType(BoxType type)
 	{
-		// if (type != BoxType.Open || (this.type != BoxType.Door && this.type != BoxType.Key))
-		// throw new RuntimeException("We should only be setting this to empty. Keys and doors do not magically appear.");
-
 		this.type = type;
 	}
 

@@ -13,25 +13,51 @@ import com.solution2013.field.FieldMap;
 import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
 
+/**
+ * Uses Dijkstra's pathfinding algorithm as a basis for finding an ideal path based on our current situation
+ * 
+ * TODO: Detail algorithm
+ * 
+ * @author Daniel Centore
+ *
+ */
 public class Dijkstras
 {
+	/**
+	 * This exception is used to tell the {@link SchoolPlayer} that we want to pick up a key rather than
+	 * follow a path.
+	 */
 	class GetKeyException extends Exception
 	{
 		private static final long serialVersionUID = 1L;
 	}
 
-	private int keys;
-	private FieldMap map;
+	private int keys;		// How many keys we have right now
+	private FieldMap map;	// The map we're referencing
 
+	/**
+	 * Creates a new instance of the Dijkstra's algorithm.
+	 * You should regenerate this every time the number of keys or the map changes
+	 * However, you don't actually need to until you run out of moves on your Stack.
+	 * 	Sometimes though with more knowledge a better decision can be made. 
+	 * @param keys Number of keys we have
+	 * @param map The {@link FieldMap} of the maze
+	 */
 	public Dijkstras(int keys, FieldMap map)
 	{
 		this.keys = keys;
 		this.map = map;
 	}
 
+	/**
+	 * Figures out which path to take next. This algorithm is really the "guts" of this program.
+	 * @return A {@link Stack} which gives you the moves you should take in order.
+	 * 			The first and last elements are where you are and where you want to be, respectively. 
+	 * @throws GetKeyException If we want you to pick up a key instead of following a path
+	 */
 	public Stack<SpaceWrapper> getNext() throws GetKeyException
 	{
-		// Find shortest path to an exit
+		// Find shortest path to an exit. Take it if it exists.
 		Stack<SpaceWrapper> toExit = shortestToType(map.getLocation(), BoxType.Exit);
 		if (toExit != null)
 			return toExit;
@@ -45,52 +71,55 @@ public class Dijkstras
 		if (toCloseKey != null)
 		{
 			int dist = toCloseKey.size();
-			
+
 			dist -= 1;		// don't include the space we're on
-			
-			if (keys == 0 && dist <= 5 )
+
+			if (keys == 0 && dist <= 5)
 				return toCloseKey;
 			else if (keys == 1 & dist <= 2)
 				return toCloseKey;
 			else if (keys == 2 && dist == 1)
 				return toCloseKey;
 		}
-		
-		// Find shortest path to unknown region
+
+		// == Find shortest path to an unexplored area ==
 		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();
 
+		// Shortest path to unexplored not including doors
 		Stack<SpaceWrapper> toUnknown = shortestToType(map.getLocation(), null, null);
 
 		if (toUnknown != null)
-			possiblePaths.add(toUnknown); // To unknown region not including through doors
+			possiblePaths.add(toUnknown);
 
-		// To unknown region through door
-		if (keys > 0) // Just go straight to the door. Already have a key.
+		// Shortest path to unexplored through a door
+		if (keys > 0) 	// Just go straight to the door. We already have a key.
 		{
 			Stack<SpaceWrapper> toDoor = shortestToType(map.getLocation(), BoxType.Door);
 			if (toDoor != null)
 				possiblePaths.add(toDoor);
 		}
 		else
-		// No key - find paths to all keys then to door
+		// We have no keys - find all key+door paths.
 		{
-			for (Space sp : map.getUnblockedSpaces())
+			for (Space sp : map.getUnblockedSpaces())		// Check the map for all keys
 			{
 				if (sp.getType() == BoxType.Key)
 				{
-					// find path to the key
+					// Find a path to the key
 					Stack<SpaceWrapper> toKey = shortestToType(map.getLocation(), sp);
 
-					// find path to closest door from the key
+					// Find a path from the key to the closest door
 					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
 
-					if (toDoor == null) // No paths to doors - no point in looking for these
+					if (toDoor == null) // There are no known doors. Just quit the whole key+door search.
 						break;
 
-					// combine them
-					toDoor.pop(); // pop the first off the door so we don't repeat it
+					// Combine the key+door stacks
 
-					Stack<SpaceWrapper> temp = new Stack<>(); // put on a temp stack
+					toDoor.pop(); // Pop the first item off the door stack because otherwise it will be repeated
+
+					// Put them on a temporary stack
+					Stack<SpaceWrapper> temp = new Stack<>();
 
 					while (!toKey.isEmpty())
 						temp.push(toKey.pop());
@@ -98,10 +127,10 @@ public class Dijkstras
 					while (!toDoor.isEmpty())
 						temp.push(toDoor.pop());
 
-					Stack<SpaceWrapper> toKeyToDoor = new Stack<>(); // final stack
+					Stack<SpaceWrapper> toKeyToDoor = new Stack<>();
 
+					// Reverse the elements because they're backward right now
 					while (!temp.isEmpty())
-						// reverse the elements b/c they're backwards now
 						toKeyToDoor.push(temp.pop());
 
 					possiblePaths.add(toKeyToDoor);
@@ -109,13 +138,20 @@ public class Dijkstras
 			}
 		}
 
-		// Find the shortest path to the unknown region now
+		// Find the shortest path to the unexplored areas now
 
 		Stack<SpaceWrapper> min;
 		Iterator<Stack<SpaceWrapper>> itr = possiblePaths.iterator();
-		if (!itr.hasNext())		// It is impossible to do anything
-			throw new RuntimeException("This map is impossible to solve in the current state.\nWe've explored all unexplored areas and used all key+door combinations.");
-		
+		if (!itr.hasNext())
+		{
+			String s = "This map is impossible to solve in the current state.\n" +
+					"We've explored all unexplored areas and used all available key+door combinations.\n" +
+					"This usually means the map has some sort of flaw in it which permits one to use\n" +
+					"all of the map's keys but still have some doors locked.";
+
+			throw new RuntimeException(s);
+		}
+
 		min = itr.next();
 		while (itr.hasNext())
 		{
@@ -125,7 +161,7 @@ public class Dijkstras
 				min = next;
 		}
 
-		return min;
+		return min;		// Return the shortest path
 	}
 
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
@@ -138,22 +174,34 @@ public class Dijkstras
 		return shortestToType(start, null, goal);
 	}
 
+	/**
+	 * Finds the shortest path from a {@link Point} to a goal.
+	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
+	 * @param start The starting {@link Point}
+	 * @param type The {@link BoxType} we are looking for. Set to null if you want unexplored or to use the {@link Space} goal instead.
+	 * @param goal The {@link Space} goal we want to go to. Set to null to use the {@link BoxType} goal.
+	 * @return The {@link Stack} of moves to follow. The first element will be the {@link Space} on {@link Point} and the last element is the goal.
+	 * 			This can be null if there is no possible path.
+	 */
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type, Space goal)
 	{
 		HashMap<Space, SpaceWrapper> vertices = wrap(map.getUnblockedSpaces(), start);
 
 		while (true)
 		{
-			// Is the end still in the graph?
+			// Is the goal still in the graph?
 			for (SpaceWrapper sw : vertices.values())
 			{
 				Space space = sw.getSpace();
 
-				if ((goal != null && space != null && space.equals(goal)) || (goal == null && space != null && space.getType() == type) || (goal == null && space == null && type == null)) // this is what we were looking for
+				if ((goal != null && space != null && space.equals(goal))				// If we found the Space goal
+						|| (goal == null && space != null && space.getType() == type)	// If we found the type goal
+						|| (goal == null && space == null && type == null)				// If we found the type goal (for unexplored)
+				)
 				{
-					// Generate a stack of the path and return it
-					if (sw.isRemoved())
+					if (sw.isRemoved())		// And we've found the shortest possible path to it
 					{
+						// Generate a stack of the path and return it
 						Stack<SpaceWrapper> fullPath = new Stack<>();
 
 						SpaceWrapper path = sw;
@@ -164,7 +212,7 @@ public class Dijkstras
 
 						} while (path != null);
 
-						if (fullPath.size() <= 1) // Needs to be at least 2 to be a path
+						if (fullPath.size() <= 1) // Need to be at least 2 to be a path. Otherwise we've got a dud.
 							return null;
 
 						return fullPath;
@@ -174,28 +222,31 @@ public class Dijkstras
 
 			// Choose the vertex with the least distance
 			SpaceWrapper min = min(vertices.values());
-			if (min == null) // no path to our goal
+
+			if (min == null) // No possible path to our goal
 				return null;
 
-			// Remove it from the graph
-
-			min.setRemoved(true);
+			min.setRemoved(true);			// Remove it from the graph (or "mark it as visited")
 
 			if (min.getSpace() != null)
 			{
-				// Calculate distances between it and neighbors still in the graph
+				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
 				for (Space sp : min.getSpace().getSurrounding())
 				{
-					if (sp == null && (type != null || goal != null)) // ignore null spaces. not looking for those here.
+					if (sp == null && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
 						continue;
 
 					SpaceWrapper wrap = vertices.get(sp);
 
-					if (wrap.isRemoved()) // don't care about these
+					if (wrap.isRemoved())			// Ignore the item if we've already visited it
 						continue;
 
-					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, keys)); // default difficulty for unknown space is 1
+					if (sp.getType() == BoxType.Door && type != BoxType.Door)		// Don't include doors if we are not looking for a door
+						continue;
 
+					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, keys)); // Difficulty for getting to an unexplored area is 1
+
+					// If this is the shortest path to the node so far, label it as such.
 					if (length < wrap.getLength())
 					{
 						wrap.setLength(length);
@@ -206,6 +257,11 @@ public class Dijkstras
 		}
 	}
 
+	/**
+	 * Find the element in the {@link SpaceWrapper} with the shortest length.
+	 * @param collection The {@link Collection} of {@link SpaceWrapper}s
+	 * @return The {@link SpaceWrapper} with the smallest value.
+	 */
 	private SpaceWrapper min(Collection<SpaceWrapper> collection)
 	{
 		SpaceWrapper shortest = null;
@@ -225,6 +281,16 @@ public class Dijkstras
 		return shortest;
 	}
 
+	/**
+	 * Wraps a {@link List} of {@link Space}s in {@link SpaceWrapper}s and spits them out as a {@link HashMap}
+	 * 	where the key is the {@link Space} and the value the {@link SpaceWrapper}.
+	 * This {@link HashMap} includes one Key,Value combination which are null,SpaceWrapper(space=null) to symbolize
+	 * 	an unexplored area
+	 * Sets the length of each of these to infinity (Ineteger.MAX_VALUE) except for the start node which is 0.
+	 * @param spaces The {@link List} of {@link Space}s
+	 * @param start	The start node whose distance we set to 0.
+	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
+	 */
 	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
 	{
 		HashMap<Space, SpaceWrapper> result = new HashMap<>();
