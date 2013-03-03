@@ -86,11 +86,9 @@ public class SchoolPlayer
 
 		if (oldMapSize < map.getMap().size() || currentStack == null) // If the map changed, recalculate the best path
 		{
-//			System.out.println("recalc");
 			try
 			{
 				currentStack = new Dijkstras(keyCount, map).getNext();
-//				System.out.println(currentStack);
 			} catch (GetKeyException e)
 			{
 				currentStack = null; // force a recalculation next time

@@ -48,7 +48,6 @@ public class Dijkstras
 		// Find shortest path to unknown region
 		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();
 
-		// TODO: Don't add unknown if it's null
 		Stack<SpaceWrapper> toUnknown = shortestToType(map.getLocation(), null, null);
 
 		if (toUnknown != null)
@@ -186,7 +185,7 @@ public class Dijkstras
 					if (wrap.isRemoved()) // don't care about these
 						continue;
 
-					int length = min.getLength() + (sp == null ? 1 : sp.difficulty()); // default difficulty for unknown space is 1
+					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type)); // default difficulty for unknown space is 1
 
 					if (length < wrap.getLength())
 					{

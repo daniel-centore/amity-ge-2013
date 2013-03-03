@@ -40,13 +40,19 @@ public class Space
 		return type;
 	}
 
-	public int difficulty()
+	public int difficulty(BoxType t)
 	{
 		switch (type)
 		{
 		case Blocked:
-		case Door:
 			return Integer.MAX_VALUE;
+			
+			
+		case Door:
+			if (t == BoxType.Door)
+				return 1;
+			else
+				return Integer.MAX_VALUE;
 
 		case Exit:
 		case Key:
