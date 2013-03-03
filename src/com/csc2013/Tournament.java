@@ -35,7 +35,7 @@ public class Tournament {
 	 * PlayerType.School
 	 * PlayerType.Human
 	 */
-	public final static PlayerType players[] = {PlayerType.Human};
+	public final static PlayerType players[] = {PlayerType.School};
 	
 	public static void main(String[] argv) {
 		DungeonMaze dm = new DungeonMaze();

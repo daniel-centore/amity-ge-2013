@@ -1,11 +1,17 @@
 package com.solution2013;
 
+import java.awt.Point;
+import java.util.Stack;
+
 import org.newdawn.slick.SlickException;
 
 import com.csc2013.DungeonMaze.Action;
+import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.PlayerVision;
+import com.solution2013.Dijkstras.GetKeyException;
 import com.solution2013.field.FieldMap;
+import com.solution2013.field.SpaceWrapper;
 
 /**
  * 
@@ -16,7 +22,7 @@ import com.solution2013.field.FieldMap;
  */
 public class SchoolPlayer
 {
-	
+
 	public FieldMap map = new FieldMap();
 
 	public SchoolPlayer() throws SlickException
@@ -39,39 +45,96 @@ public class SchoolPlayer
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
 		Action action = amityNextMove(vision, keyCount);
-		
-		switch (action)		// Apply the action we are about to take to the map
+
+		switch (action)
+		// Apply the action we are about to take to the map
 		{
 		case North:
 			map.applyMove(Direction.North);
 			break;
-			
+
 		case South:
 			map.applyMove(Direction.South);
 			break;
-			
+
 		case East:
 			map.applyMove(Direction.East);
 			break;
-			
+
 		case West:
 			map.applyMove(Direction.West);
 			break;
-			
+
 		case Pickup:
 			map.applyPickupKey();
 			break;
-		
+
 		case Use:
 			map.applyOpenDoor();
 			break;
 		}
-		
+
 		return action;
 	}
-	
+
+	private Stack<SpaceWrapper> currentStack = null;
+
 	public Action amityNextMove(PlayerVision vision, int keyCount)
 	{
-		return null;
+		int oldMapSize = map.getMap().size();
+		map.fillVision(vision);
+
+		if (oldMapSize < map.getMap().size() || currentStack == null) // If the map changed, recalculate the best path
+		{
+//			System.out.println("recalc");
+			try
+			{
+				currentStack = new Dijkstras(keyCount, map).getNext();
+//				System.out.println(currentStack);
+			} catch (GetKeyException e)
+			{
+				currentStack = null; // force a recalculation next time
+				return Action.Pickup;
+			}
+		}
+		
+		// Pickup key if we are on top of it and we are not on the way to an exit already
+		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key && currentStack.lastElement().getSpace().getType() != BoxType.Exit)
+			return Action.Pickup;
+		
+		Action act = toAction(currentStack);
+		if (act != Action.Use)
+			currentStack.pop(); // pop off our last movement
+		else
+			currentStack = null; // force a recalculation next time. We just opened a door.
+
+		
+//		System.out.println(act);
+		return act;
+	}
+
+	/**
+	 * Finds the direction between the first two moves on the stack (ie from point a to b)
+	 * @param toExit
+	 * @return
+	 */
+	private Action toAction(Stack<SpaceWrapper> toExit)
+	{
+		if (toExit.get(toExit.size() - 2).getSpace().getType() == BoxType.Door)		// If next space is a door, open it
+			return Action.Use;
+					
+		Point a = toExit.get(toExit.size() - 1).getSpace().getPoint();
+		Point b = toExit.get(toExit.size() - 2).getSpace().getPoint();
+		
+		if (b.y - 1 == a.y)
+			return Action.North;
+		if (b.y + 1 == a.y)
+			return Action.South;
+		if (b.x - 1 == a.x)
+			return Action.East;
+		if (b.x + 1 == a.x)
+			return Action.West;
+
+		throw new RuntimeException("Bad stack: " + toExit.toString());
 	}
 }

@@ -13,9 +13,14 @@ import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.solution2013.field.FieldMap;
 import com.solution2013.field.Space;
+import com.solution2013.field.SpaceWrapper;
 
 public class Dijkstras
 {
+	class GetKeyException extends Exception
+	{
+	}
+
 	private int keys;
 	private FieldMap map;
 
@@ -29,64 +34,103 @@ public class Dijkstras
 		// shortest to door
 	}
 
-	public Action getNext()
+	public Stack<SpaceWrapper> getNext() throws GetKeyException
 	{
 		// Find shortest path to an exit
 		Stack<SpaceWrapper> toExit = shortestToType(map.getLocation(), BoxType.Exit);
 		if (toExit != null)
-			return toAction(directionOf(toExit));
-		
+			return toExit;
+
 		// If standing on key, grab it
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
-			return Action.Pickup;
-		
-		return null;
-			
-	}
-	
-	private Action toAction(Direction d)
-	{
-		switch (d)
+			throw new GetKeyException();
+
+		// Find shortest path to unknown region
+		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();
+
+		// TODO: Don't add unknown if it's null
+		Stack<SpaceWrapper> toUnknown = shortestToType(map.getLocation(), null, null);
+
+		if (toUnknown != null)
+			possiblePaths.add(toUnknown); // To unknown region not including through doors
+
+		// To unknown region through door
+		if (keys > 0) // Just go straight to the door. Already have a key.
 		{
-		case East:
-			return Action.East;
-
-		case North:
-			return Action.North;
-		
-		case South:
-			return Action.South;
-
-		case West:
-			return Action.West;
+			Stack<SpaceWrapper> toDoor = shortestToType(map.getLocation(), BoxType.Door);
+			if (toDoor != null)
+				possiblePaths.add(toDoor);
 		}
-		
-		throw new RuntimeException("Not possible");
-	}
+		else
+		// No key - find paths to all keys then to door
+		{
+			for (Space sp : map.getUnblockedSpaces())
+			{
+				if (sp.getType() == BoxType.Key)
+				{
+					// find path to the key
+					Stack<SpaceWrapper> toKey = shortestToType(map.getLocation(), sp);
 
-	/**
-	 * Finds the direction between the first two moves on the stack (ie from point a to b)
-	 * @param toExit
-	 * @return
-	 */
-	private Direction directionOf(Stack<SpaceWrapper> toExit)
-	{
-		Point a = toExit.pop().getSpace().getPoint();
-		Point b = toExit.pop().getSpace().getPoint();
+					// find path to closest door from the key
+					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
 
-		if (b.y + 1 == a.y)
-			return Direction.North;
-		if (b.y == a.y + 1)
-			return Direction.South;
-		if (b.x + 1 == a.x)
-			return Direction.East;
-		if (b.x == a.x + 1)
-			return Direction.West;
+					System.out.println(toKey.firstElement().getSpace().getPoint());
+					System.out.println(toKey);
+					System.out.println(toDoor);
+					System.out.println("----");
 
-		throw new RuntimeException("Bad stack: " + toExit.toString());
+					if (toDoor == null) // No paths to doors - no point in looking for these
+						break;
+
+					// combine them
+					toDoor.pop(); // pop the first off the door so we don't repeat it
+
+					Stack<SpaceWrapper> temp = new Stack<>(); // put on a temp stack
+
+					while (!toKey.isEmpty())
+						temp.push(toKey.pop());
+
+					while (!toDoor.isEmpty())
+						temp.push(toDoor.pop());
+
+					Stack<SpaceWrapper> toKeyToDoor = new Stack<>(); // final stack
+
+					while (!temp.isEmpty())
+						// reverse the elements b/c they're backwards now
+						toKeyToDoor.push(temp.pop());
+
+					possiblePaths.add(toKeyToDoor);
+				}
+			}
+		}
+
+		// Find the shortest path to the unknown region now
+
+		Stack<SpaceWrapper> min;
+		Iterator<Stack<SpaceWrapper>> itr = possiblePaths.iterator();
+		min = itr.next();
+		while (itr.hasNext())
+		{
+			Stack<SpaceWrapper> next = itr.next();
+
+			if (next.size() < min.size())
+				min = next;
+		}
+
+		return min;
 	}
 
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
+	{
+		return shortestToType(start, type, null);
+	}
+
+	public Stack<SpaceWrapper> shortestToType(Point start, Space goal)
+	{
+		return shortestToType(start, null, goal);
+	}
+
+	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type, Space goal)
 	{
 		HashMap<Space, SpaceWrapper> vertices = wrap(map.getUnblockedSpaces(), start);
 
@@ -97,8 +141,9 @@ public class Dijkstras
 			{
 				Space space = sw.getSpace();
 
-				if ((space != null && space.getType() == type) || (space == null && type == null)) // this is what we were looking for
+				if ((goal != null && space != null && space.equals(goal)) || (goal == null && space != null && space.getType() == type) || (goal == null && space == null && type == null)) // this is what we were looking for
 				{
+					// Generate a stack of the path and return it
 					if (sw.isRemoved())
 					{
 						Stack<SpaceWrapper> fullPath = new Stack<>();
@@ -107,9 +152,12 @@ public class Dijkstras
 						do
 						{
 							fullPath.push(path);
-							path = path.previous;
+							path = path.getPrevious();
 
 						} while (path != null);
+
+						if (fullPath.size() <= 1) // Needs to be at least 2 to be a path
+							return null;
 
 						return fullPath;
 					}
@@ -130,7 +178,7 @@ public class Dijkstras
 				// Calculate distances between it and neighbors still in the graph
 				for (Space sp : min.getSpace().getSurrounding())
 				{
-					if (sp == null && type != null) // ignore null spaces. not looking for those here.
+					if (sp == null && (type != null || goal != null)) // ignore null spaces. not looking for those here.
 						continue;
 
 					SpaceWrapper wrap = vertices.get(sp);
@@ -138,7 +186,7 @@ public class Dijkstras
 					if (wrap.isRemoved()) // don't care about these
 						continue;
 
-					int length = min.length + (sp == null ? 1 : sp.difficulty()); // default difficulty for unknown space is 1
+					int length = min.getLength() + (sp == null ? 1 : sp.difficulty()); // default difficulty for unknown space is 1
 
 					if (length < wrap.getLength())
 					{
@@ -161,17 +209,12 @@ public class Dijkstras
 
 			if (!next.isRemoved())
 			{
-				if (shortest == null || shortest.length > next.length)
+				if (shortest == null || shortest.getLength() > next.getLength())
 					shortest = next;
 			}
 		}
 
 		return shortest;
-	}
-
-	public List<DijResult> toKeyThenDoor(Point start)
-	{
-		return null;
 	}
 
 	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
@@ -192,78 +235,6 @@ public class Dijkstras
 		}
 
 		return result;
-	}
-
-	class SpaceWrapper // for dijkstras
-	{
-		private SpaceWrapper previous; // prev element in chain
-		private int length; // total dist
-		private Space space; // space attached to this
-		private boolean removed; // removed once we visited
-
-		public SpaceWrapper(int length, Space space)
-		{
-			this.length = length;
-			this.space = space;
-			this.removed = false;
-		}
-
-		public int getLength()
-		{
-			return length;
-		}
-
-		public void setLength(int length)
-		{
-			this.length = length;
-		}
-
-		public Space getSpace()
-		{
-			return space;
-		}
-
-		public boolean isRemoved()
-		{
-			return removed;
-		}
-
-		public void setRemoved(boolean removed)
-		{
-			this.removed = removed;
-		}
-
-		public SpaceWrapper getPrevious()
-		{
-			return previous;
-		}
-
-		public void setPrevious(SpaceWrapper previous)
-		{
-			this.previous = previous;
-		}
-	}
-
-	class DijResult // result of an algorithm
-	{
-		private Direction dir;
-		private int distance;
-
-		public DijResult(Direction dir, int distance)
-		{
-			this.dir = dir;
-			this.distance = distance;
-		}
-
-		public Direction getDir()
-		{
-			return dir;
-		}
-
-		public int getDistance()
-		{
-			return distance;
-		}
 	}
 
 }

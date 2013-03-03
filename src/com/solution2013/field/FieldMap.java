@@ -78,7 +78,7 @@ public class FieldMap
 			Space sp = map.get(p);
 
 			if (sp.getType() != type)
-				throw new RuntimeException("Detected type " + sp + " at " + p.x + "," + p.y + " but expected " + type);
+				throw new RuntimeException("Expected type " + sp + " at " + p.x + "," + p.y + " but asked to save " + type);
 			
 			return sp;
 		}
@@ -150,18 +150,6 @@ public class FieldMap
 
 	public void applyPickupKey()
 	{
-		Dijkstras dij = new Dijkstras(1, this);
-		
-		dij.shortestToType(getLocation(), BoxType.Door);
-		
-		try
-		{
-			Thread.sleep(2000);
-		} catch (InterruptedException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		map.get(location).setType(BoxType.Open);
 	}
 

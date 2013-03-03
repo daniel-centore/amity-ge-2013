@@ -14,17 +14,19 @@ import com.csc2013.DungeonMaze.BoxType;
  */
 public class Space
 {
-	private BoxType type;	// type of space we are
-	
+	private BoxType type; // type of space we are
+
 	// null means we dunno
 	private Space north = null;
 	private Space south = null;
 	private Space east = null;
 	private Space west = null;
-	
+
 	// x,y coords relative to 0,0 start
 	private final int x;
 	private final int y;
+
+	private boolean beenTo = false;
 
 	public Space(int x, int y, BoxType type)
 	{
@@ -37,10 +39,10 @@ public class Space
 	{
 		return type;
 	}
-	
+
 	public int difficulty()
 	{
-		switch(type)
+		switch (type)
 		{
 		case Blocked:
 		case Door:
@@ -51,34 +53,51 @@ public class Space
 		case Open:
 			return 1;
 		}
-		
+
 		throw new RuntimeException("This should not be possible");
 	}
-	
+
 	public List<Space> getSurrounding()
 	{
 		ArrayList<Space> result = new ArrayList<>(4);
-		
-		if (north == null || north.type != BoxType.Blocked)
-			result.add(north);
-		
-		if (south == null || south.type != BoxType.Blocked)
-			result.add(south);
-		
-		if (east == null || east.type != BoxType.Blocked)
-			result.add(east);
-		
-		if (west == null || west.type != BoxType.Blocked)
-			result.add(west);
-		
+
+		if (type == BoxType.Door)		// If we are a door, we have no access to the great beyond
+		{
+			if (north != null && north.type != BoxType.Blocked)
+				result.add(north);
+
+			if (south != null && south.type != BoxType.Blocked)
+				result.add(south);
+
+			if (east != null && east.type != BoxType.Blocked)
+				result.add(east);
+
+			if (west != null && west.type != BoxType.Blocked)
+				result.add(west);
+		}
+		else
+		{
+			if (north == null || north.type != BoxType.Blocked)
+				result.add(north);
+
+			if (south == null || south.type != BoxType.Blocked)
+				result.add(south);
+
+			if (east == null || east.type != BoxType.Blocked)
+				result.add(east);
+
+			if (west == null || west.type != BoxType.Blocked)
+				result.add(west);
+		}
+
 		return result;
 	}
 
 	public void setType(BoxType type)
 	{
-		//if (type != BoxType.Open || (this.type != BoxType.Door && this.type != BoxType.Key))
-			//throw new RuntimeException("We should only be setting this to empty. Keys and doors do not magically appear.");
-		
+		// if (type != BoxType.Open || (this.type != BoxType.Door && this.type != BoxType.Key))
+		// throw new RuntimeException("We should only be setting this to empty. Keys and doors do not magically appear.");
+
 		this.type = type;
 	}
 
@@ -131,7 +150,7 @@ public class Space
 	{
 		return y;
 	}
-	
+
 	public Point getPoint()
 	{
 		return new Point(x, y);
