@@ -241,7 +241,7 @@ public class Dijkstras
 					if (wrap.isRemoved())			// Ignore the item if we've already visited it
 						continue;
 
-					if (sp.getType() == BoxType.Door && type != BoxType.Door)		// Don't include doors if we are not looking for a door
+					if (sp != null && sp.getType() == BoxType.Door && type != BoxType.Door)		// Don't include doors if we are not looking for a door
 						continue;
 
 					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, keys)); // Difficulty for getting to an unexplored area is 1
