@@ -70,7 +70,7 @@
  </layer>
  <layer name="key" width="100" height="100">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3XwQkAMAgDQPfr/vu4gg+rLdxNEIQQjACAGWc7AADfsyUAAMDL/CxQoys93BEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgrgSG1a43QJwAAA==
+   H4sIAAAAAAAAA+3YQQ0AAAgCQPvZv48pVB53CdjYeFAFADf6OwAAAAAALPJ/AYlsUz4dAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQKYBAnHjbkCcAAA=
   </data>
  </layer>
  <layer name="door" width="100" height="100">

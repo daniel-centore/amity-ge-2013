@@ -16,14 +16,14 @@ public class Tournament {
 	/*
 	 * This variable controls how many steps a player can take before starting the next game
 	 */
-	public final static int maxSteps = 20000;//200;
+	public final static int maxSteps = 500;//200;
 	/*
 	 * Possible maps to use are:
 	 * map01.tmx
 	 * map02.tmx
 	 * map03.tmx
 	 */
-	public final static String maps[] = {/*"map01.tmx", */"map02.tmx", "map03.tmx"};
+	public final static String maps[] = {"map01.tmx", "map02.tmx", "map03.tmx"};
 	/*
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.	
@@ -35,7 +35,7 @@ public class Tournament {
 	 * PlayerType.School
 	 * PlayerType.Human
 	 */
-	public final static PlayerType players[] = {PlayerType.School};
+	public final static PlayerType players[] = {PlayerType.School, PlayerType.AI};
 	
 	public static void main(String[] argv) {
 		DungeonMaze dm = new DungeonMaze();

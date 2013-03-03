@@ -40,7 +40,7 @@ public class Space
 		return type;
 	}
 
-	public int difficulty(BoxType t)
+	public int difficulty(BoxType t, int keys)
 	{
 		switch (type)
 		{
@@ -50,13 +50,20 @@ public class Space
 			
 		case Door:
 			if (t == BoxType.Door)
-				return 1;
+				return 1;	// if we are looking for a door then give it a weight of one
 			else
-				return Integer.MAX_VALUE;
+				return 2000;		// otherwise, it is impassable
 
-		case Exit:
 		case Key:
+			return 1;
+			
+		case Exit:
 		case Open:
+			if (keys == 0)		// Prefer paths with keys if we have none
+				return 5;
+			if (keys == 1)
+				return 2;
+			
 			return 1;
 		}
 

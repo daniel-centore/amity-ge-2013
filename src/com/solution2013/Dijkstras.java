@@ -45,6 +45,20 @@ public class Dijkstras
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
 			throw new GetKeyException();
 
+		// Grab keys if we need them and they are nearby
+		Stack<SpaceWrapper> toCloseKey = shortestToType(map.getLocation(), BoxType.Key);
+		if (toCloseKey != null)
+		{
+			int dist = toCloseKey.size();
+			
+			if (keys == 0 && dist <5)
+				return toCloseKey;
+			else if (keys == 1 & dist < 2)
+				return toCloseKey;
+			else if (keys == 2 && dist == 1)
+				return toCloseKey;
+		}
+		
 		// Find shortest path to unknown region
 		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();
 
@@ -73,10 +87,10 @@ public class Dijkstras
 					// find path to closest door from the key
 					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
 
-					System.out.println(toKey.firstElement().getSpace().getPoint());
-					System.out.println(toKey);
-					System.out.println(toDoor);
-					System.out.println("----");
+//					System.out.println(toKey.firstElement().getSpace().getPoint());
+//					System.out.println(toKey);
+//					System.out.println(toDoor);
+//					System.out.println("----");
 
 					if (toDoor == null) // No paths to doors - no point in looking for these
 						break;
@@ -185,7 +199,7 @@ public class Dijkstras
 					if (wrap.isRemoved()) // don't care about these
 						continue;
 
-					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type)); // default difficulty for unknown space is 1
+					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, keys)); // default difficulty for unknown space is 1
 
 					if (length < wrap.getLength())
 					{

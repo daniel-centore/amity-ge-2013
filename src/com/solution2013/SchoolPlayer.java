@@ -84,11 +84,12 @@ public class SchoolPlayer
 		int oldMapSize = map.getMap().size();
 		map.fillVision(vision);
 
-		if (oldMapSize < map.getMap().size() || currentStack == null) // If the map changed, recalculate the best path
+		if (oldMapSize < map.getMap().size() || currentStack == null || currentStack.size() < 2) // If the map changed, recalculate the best path
 		{
 			try
 			{
 				currentStack = new Dijkstras(keyCount, map).getNext();
+//				System.out.println(currentStack);
 			} catch (GetKeyException e)
 			{
 				currentStack = null; // force a recalculation next time
@@ -106,7 +107,14 @@ public class SchoolPlayer
 		else
 			currentStack = null; // force a recalculation next time. We just opened a door.
 
-		
+		try
+		{
+			Thread.sleep(10);
+		} catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 //		System.out.println(act);
 		return act;
 	}
