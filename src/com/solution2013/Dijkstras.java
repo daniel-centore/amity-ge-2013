@@ -254,11 +254,13 @@ public class Dijkstras
 					}
 				}
 			}
+			// Time for another iteration of the while loop....
 		}
 	}
 
 	/**
 	 * Find the element in the {@link SpaceWrapper} with the shortest length.
+	 * Only includes nodes still in the graph (ie those we haven't visited yet)
 	 * @param collection The {@link Collection} of {@link SpaceWrapper}s
 	 * @return The {@link SpaceWrapper} with the smallest value.
 	 */
