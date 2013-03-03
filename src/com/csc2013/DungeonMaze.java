@@ -6,6 +6,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 import com.solution2013.SchoolPlayer;
+import com.solution2013.field.FieldMap;
 
 /**
  * 
@@ -80,10 +81,12 @@ public class DungeonMaze extends BasicGame {
 		if (personTracker == Tournament.players.length) { 
 			visionTracker++;
 			personTracker = 0;
-			if (visionTracker < Tournament.vision.length) {
-				PlayerVision.distanceToView = Tournament.vision[visionTracker];
-			}
 		}
+		
+		if (visionTracker < Tournament.vision.length) {
+			PlayerVision.distanceToView = Tournament.vision[visionTracker];
+		}
+		
 		if (visionTracker == Tournament.vision.length) { //END GAME
 			System.out.println();
 			System.out.println("****** FINAL RESULTS ******");
@@ -125,8 +128,12 @@ public class DungeonMaze extends BasicGame {
 			} else if (curPlayer == PlayerType.School) {
 				school = new SchoolPlayer();
 			}
+			
+			testMap = new FieldMap();
 		}
 	}
+	
+	FieldMap testMap = null;
 
 	/*
 	 * (non-Javadoc)
@@ -149,17 +156,82 @@ public class DungeonMaze extends BasicGame {
         player.setMapBox();
         boolean show = true;
 		if(playerMoveTime <= 0 && gameRunning) {
+			
 		    if(curPlayer == PlayerType.Human) {
-    			if (container.getInput().isKeyDown(Input.KEY_LEFT)) {show = true; lastAction = player.move(Action.West); if (lastAction == true) {steps++;}}
-    			else if (container.getInput().isKeyDown(Input.KEY_RIGHT)) {show = true; lastAction = player.move(Action.East);if (lastAction == true) {steps++;}}
-    			else if (container.getInput().isKeyDown(Input.KEY_UP)) {show = true; lastAction = player.move(Action.North); if (lastAction == true) {steps++;}}
-    			else if (container.getInput().isKeyDown(Input.KEY_DOWN)) {show = true; lastAction = player.move(Action.South); if (lastAction == true) {steps++;}}
-                else if (container.getInput().isKeyDown(Input.KEY_SPACE)) {show = true; lastAction = player.move(Action.Pickup); if (lastAction == true) {steps++;}}
-                else if (container.getInput().isKeyDown(Input.KEY_ENTER)) {show = true; lastAction = player.move(Action.Use); if (lastAction == true) {steps++;}}
-    			else if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)){System.exit(0);}
-    			else if(container.getInput().isKeyPressed(Input.KEY_0)) { 
-    	            show = false;
-    	        }
+		    	PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
+		    	testMap.fillIn(vision);
+				if (container.getInput().isKeyDown(Input.KEY_LEFT))
+				{
+					show = true;
+					lastAction = player.move(Action.West);
+					
+					if (lastAction == true)
+					{
+						steps++;
+						testMap.applyMove(FieldMap.WEST);
+					}
+				}
+				else if (container.getInput().isKeyDown(Input.KEY_RIGHT))
+				{
+					show = true;
+					lastAction = player.move(Action.East);
+					
+					if (lastAction == true)
+					{
+						steps++;
+						testMap.applyMove(FieldMap.EAST);
+					}
+				}
+				else if (container.getInput().isKeyDown(Input.KEY_UP))
+				{
+					show = true;
+					lastAction = player.move(Action.North);
+					
+					if (lastAction == true)
+					{
+						steps++;
+						testMap.applyMove(FieldMap.NORTH);
+					}
+				}
+				else if (container.getInput().isKeyDown(Input.KEY_DOWN))
+				{
+					show = true;
+					lastAction = player.move(Action.South);
+					
+					if (lastAction == true)
+					{
+						steps++;
+						testMap.applyMove(FieldMap.SOUTH);
+					}
+				}
+				else if (container.getInput().isKeyDown(Input.KEY_SPACE))
+				{
+					show = true;
+					lastAction = player.move(Action.Pickup);
+					testMap.applyPickupKey();
+					if (lastAction == true)
+					{
+						steps++;
+					}
+				}
+				else if (container.getInput().isKeyDown(Input.KEY_ENTER))
+				{
+					show = true;
+					lastAction = player.move(Action.Use);
+					testMap.applyOpenDoor();
+					if (lastAction == true)
+					{
+						steps++;
+					}
+				}
+				else if (container.getInput().isKeyPressed(Input.KEY_ESCAPE))
+				{
+					System.exit(0);
+				}
+				else if (container.getInput().isKeyPressed(Input.KEY_0))
+				{
+					show = false;
+				}
 		    } else if (curPlayer == PlayerType.AI) {
 		        PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
 		        lastAction = player.move(ai.nextMove(vision, player.getKeys(), lastAction));

@@ -2,93 +2,90 @@ package com.csc2013;
 
 import java.awt.Point;
 
-import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.MoveType;
 
-public class PlayerVision {
-    public MapBox CurrentPoint;
-    
-    public MapBox[] North;
-    public MapBox[] South;
-    public MapBox[] East;
-    public MapBox[] West;
-    
-    public int mNorth;
-    public int mSouth;
-    public int mEast;
-    public int mWest;
-    public static int distanceToView = 1;
-    
-    
-    public PlayerVision(Map map, Point playerLoc) {
-        mNorth = 0;
-        mSouth = 0;
-        mEast = 0;
-        mWest = 0;
-        
-        CurrentPoint = map.getMapBox(playerLoc);
+public class PlayerVision
+{
+	public MapBox CurrentPoint;
 
-        /* West */
-        MapBox curPoint = map.getMapBox(playerLoc);
-        while(curPoint.West == BoxType.Open && mWest < distanceToView) {
-            mWest++;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX()-mWest,(int)playerLoc.getY()));
-        }
+	public MapBox[] North;
+	public MapBox[] South;
+	public MapBox[] East;
+	public MapBox[] West;
 
-        West = new MapBox[mWest];
-        //System.out.println(mWest);
-        curPoint = map.getMapBox(playerLoc);
-        for(int i = 0; i < mWest; i++) {
-            West[i] = curPoint;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX()-mWest,(int)playerLoc.getY()));
-        }
-        
-        /* East */
-        curPoint = map.getMapBox(playerLoc);
-        while(curPoint.East == BoxType.Open  && mEast < distanceToView) {
-            mEast++;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX()+mEast,(int)playerLoc.getY()));
-        }
+	public int mNorth;
+	public int mSouth;
+	public int mEast;
+	public int mWest;
+	public static int distanceToView = 1;
 
-        East = new MapBox[mEast];
-        curPoint = map.getMapBox(playerLoc);
-        for(int i = 0; i < mEast; i++) {
-            East[i] = curPoint;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX()+mEast,(int)playerLoc.getY()));
-        }
-        
-        
-        
-        
-        /* North */
-        curPoint = map.getMapBox(playerLoc);
-        while(curPoint.North == BoxType.Open && mNorth < distanceToView) {
-            mNorth++;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX(),(int)playerLoc.getY()-mNorth));
-        }
+	public PlayerVision(Map map, Point playerLoc)
+	{
+		mNorth = 0;
+		mSouth = 0;
+		mEast = 0;
+		mWest = 0;
 
-        North = new MapBox[mNorth];
-        curPoint = map.getMapBox(playerLoc);
-        for(int i = 0; i < mNorth; i++) {
-            North[i] = curPoint;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX(),(int)playerLoc.getY()-mNorth));
-        }
-        
-        
-        
-        
-        /* South */
-        curPoint = map.getMapBox(playerLoc);
-        while(curPoint.South == BoxType.Open && mSouth < distanceToView) {
-            mSouth++;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX(),(int)playerLoc.getY()+mSouth));
-        }
-        
-        South = new MapBox[mSouth];
-        curPoint = map.getMapBox(playerLoc);
-        for(int i = 0; i < mSouth; i++) {
-            South[i] = curPoint;
-            curPoint = map.getMapBox(new Point((int)playerLoc.getX(),(int)playerLoc.getY()+mSouth));
-        }
-    }
+		CurrentPoint = map.getMapBox(playerLoc);
+
+		/* West */
+		MapBox curPoint = map.getMapBox(playerLoc);
+		while (curPoint.WestMove == MoveType.Open && mWest < distanceToView)
+		{
+			mWest++;
+			curPoint = map.getMapBox(new Point(playerLoc.x - mWest, playerLoc.y));
+		}
+
+		West = new MapBox[mWest];
+		for (int i = 0; i < mWest; i++)
+		{
+			curPoint = map.getMapBox(new Point(playerLoc.x - i - 1, playerLoc.y));
+			West[i] = curPoint;
+		}
+
+		/* East */
+		curPoint = map.getMapBox(playerLoc);
+		while (curPoint.EastMove == MoveType.Open && mEast < distanceToView)
+		{
+			mEast++;
+			curPoint = map.getMapBox(new Point(playerLoc.x + mEast, playerLoc.y));
+		}
+
+		East = new MapBox[mEast];
+		for (int i = 0; i < mEast; i++)
+		{
+			curPoint = map.getMapBox(new Point(playerLoc.x + i + 1, playerLoc.y));
+			East[i] = curPoint;
+		}
+
+		/* North */
+		curPoint = map.getMapBox(playerLoc);
+		while (curPoint.NorthMove == MoveType.Open && mNorth < distanceToView)
+		{
+			mNorth++;
+			curPoint = map.getMapBox(new Point(playerLoc.x, playerLoc.y - mNorth));
+		}
+
+		North = new MapBox[mNorth];
+		for (int i = 0; i < mNorth; i++)
+		{
+			curPoint = map.getMapBox(new Point(playerLoc.x, playerLoc.y - i - 1));
+			North[i] = curPoint;
+		}
+
+		/* South */
+		curPoint = map.getMapBox(playerLoc);
+		while (curPoint.SouthMove == MoveType.Open && mSouth < distanceToView)
+		{
+			mSouth++;
+			curPoint = map.getMapBox(new Point(playerLoc.x, playerLoc.y + mSouth));
+		}
+
+		South = new MapBox[mSouth];
+		for (int i = 0; i < mSouth; i++)
+		{
+			curPoint = map.getMapBox(new Point(playerLoc.x, playerLoc.y + i + 1));
+			South[i] = curPoint;
+		}
+	}
 }

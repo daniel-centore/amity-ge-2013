@@ -8,7 +8,7 @@ import com.csc2013.DungeonMaze.BoxType;
 public class Map {
 	private Point MapSize;
 	private int MapBoxWidth;
-	static MapBox[][] MapGrid;
+	public static MapBox[][] MapGrid;
 	BoxType[][] Grid;
 	private TiledMap map;
 	private String name = "";

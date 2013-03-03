@@ -1,15 +1,19 @@
 package com.solution2013.field;
 
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
+import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
-import com.csc2013.DungeonMaze.BoxType;
 
 public class FieldMap
 {
 	private HashMap<Point, Space> map = new HashMap<>();
+	private List<Space> spaces = new ArrayList<Space>();
 
 	// Player's curr loc rel to 0,0 initial pos
 	private Point location = new Point(0, 0);
@@ -22,6 +26,37 @@ public class FieldMap
 	public FieldMap()
 	{
 
+	}
+	
+	public void applyPickupKey()
+	{
+//		System.out.println(location);
+//		System.out.println(spaces.toString());
+		return;
+		//map.get(location).setType(Space.EMPTY);
+	}
+	
+	public void applyOpenDoor()
+	{
+		int x = location.x;
+		int y = location.y;
+		
+		Space n = map.get(new Point(x, y + 1));
+		Space s = map.get(new Point(x, y - 1));
+		Space e = map.get(new Point(x + 1, y));
+		Space w = map.get(new Point(x - 1, y));
+		
+		if (n != null && n.getType() == Space.DOOR)
+			n.setType(Space.EMPTY);
+		
+		if (s != null && s.getType() == Space.DOOR)
+			s.setType(Space.EMPTY);
+		
+		if (e != null && e.getType() == Space.DOOR)
+			e.setType(Space.EMPTY);
+		
+		if (w != null && w.getType() == Space.DOOR)
+			w.setType(Space.EMPTY);
 	}
 
 	public void applyMove(int direction)
@@ -55,20 +90,28 @@ public class FieldMap
 	 */
 	public void fillIn(PlayerVision vision)
 	{
+		for (int i = 0; i < vision.mEast; i++)
+		{
+			System.out.println((i+1)+" "+vision.East[i].East);
+		}
+		
+		/*
+		
 		// Fill in current point
 
 		fillPoint(vision.CurrentPoint, location.x, location.y, (vision.CurrentPoint.hasKey() ? Space.KEY : Space.EMPTY));
 
 		// Now let's go through the others
-
+		
 		// North
 		for (int i = 0; i < vision.mNorth; i++)
 		{
 			MapBox mb = vision.North[i];
 
 			int x = location.x;
-			int y = location.y + 1;
+			int y = location.y + 1 + i;
 
+			// TODO: Why we crash here?
 			fillPoint(mb, x, y, -1); // We can ignore the type because the it should have already been filled in
 		}
 
@@ -78,7 +121,7 @@ public class FieldMap
 			MapBox mb = vision.South[i];
 
 			int x = location.x;
-			int y = location.y - 1;
+			int y = location.y - 1 - i;
 
 			fillPoint(mb, x, y, -1); // We can ignore the type because the it should have already been filled in
 		}
@@ -88,9 +131,9 @@ public class FieldMap
 		{
 			MapBox mb = vision.East[i];
 
-			int x = location.x + 1;
+			int x = location.x + 1 + i;
 			int y = location.y;
-
+			
 			fillPoint(mb, x, y, -1); // We can ignore the type because the it should have already been filled in
 		}
 
@@ -99,17 +142,19 @@ public class FieldMap
 		{
 			MapBox mb = vision.West[i];
 
-			int x = location.x - 1;
+			int x = location.x - 1 - i;
 			int y = location.y;
 
 			fillPoint(mb, x, y, -1); // We can ignore the type because the it should have already been filled in
 		}
+		
+		*/
 	}
 
 	private void fillPoint(MapBox box, int x, int y, int type)
 	{
 		Space space = fillPoint(x, y, type);
-
+		
 		fillSpot(NORTH, box.North, space);
 		fillSpot(SOUTH, box.South, space);
 		fillSpot(EAST, box.East, space);
@@ -124,6 +169,7 @@ public class FieldMap
 	 */
 	private void fillSpot(int direction, BoxType boxType, Space space)
 	{
+		System.out.println(direction+""+boxType);
 		if (boxType == BoxType.Blocked) // Wall
 		{
 			if (direction == NORTH)
@@ -159,6 +205,7 @@ public class FieldMap
 				type = Space.KEY;
 			else if (boxType == boxType.Exit)
 				type = Space.EXIT;
+			
 
 			Space newSpace = fillPoint(x, y, type);
 			
@@ -182,6 +229,7 @@ public class FieldMap
 				space.setWest(newSpace);
 				newSpace.setEast(space);
 			}
+			
 		}
 	}
 
@@ -200,6 +248,8 @@ public class FieldMap
 
 			space = new Space(x, y, type);
 			map.put(p, space);
+			
+			spaces.add(space);
 		}
 
 		return space;

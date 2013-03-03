@@ -17,6 +17,12 @@ public class Space extends FieldEntity
 	
 	// null means we dunno
 	private FieldEntity north = null;
+	@Override
+	public String toString()
+	{
+		return "Space [x=" + x + ", y=" + y + ", type=" + type + "]";
+	}
+
 	private FieldEntity south = null;
 	private FieldEntity east = null;
 	private FieldEntity west = null;

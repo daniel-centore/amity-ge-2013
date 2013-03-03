@@ -16,7 +16,7 @@ public class Tournament {
 	/*
 	 * This variable controls how many steps a player can take before starting the next game
 	 */
-	public final static int maxSteps = 200;
+	public final static int maxSteps = 20000;//200;
 	/*
 	 * Possible maps to use are:
 	 * map01.tmx
@@ -28,7 +28,7 @@ public class Tournament {
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.	
 	 */
-	public final static int vision[] = {1};
+	public final static int vision[] = {15};
 	/*
 	 * Possible players are:
 	 * PlayerType.AI
