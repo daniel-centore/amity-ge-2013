@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Stack;
 
 import com.csc2013.DungeonMaze.BoxType;
@@ -74,11 +75,9 @@ public class Dijkstras
 
 			dist -= 1;		// don't include the space we're on
 
-			if (keys == 0 && dist <= 5)
+			if (keys == 0 && dist <= 2)
 				return toCloseKey;
-			else if (keys == 1 & dist <= 2)
-				return toCloseKey;
-			else if (keys == 2 && dist == 1)
+			else if (keys == 1 & dist <= 1)
 				return toCloseKey;
 		}
 
@@ -257,6 +256,8 @@ public class Dijkstras
 			// Time for another iteration of the while loop....
 		}
 	}
+	
+	Random rand = new Random();
 
 	/**
 	 * Find the element in the {@link SpaceWrapper} with the shortest length.
@@ -276,6 +277,8 @@ public class Dijkstras
 			if (!next.isRemoved())
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
+					shortest = next;
+				else if (shortest.getLength() == next.getLength() && rand.nextBoolean())		// If they are equal randomly pick one
 					shortest = next;
 			}
 		}

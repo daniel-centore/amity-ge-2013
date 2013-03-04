@@ -23,19 +23,19 @@ public class Tournament {
 	 * map02.tmx
 	 * map03.tmx
 	 */
-	public final static String maps[] = {/*"map01.tmx", */"map02.tmx", "map03.tmx"};
+	public final static String maps[] = {"map01.tmx", "map02.tmx", "map03.tmx"};
 	/*
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.	
 	 */
-	public final static int vision[] = {15};
+	public final static int vision[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	/*
 	 * Possible players are:
 	 * PlayerType.AI
 	 * PlayerType.School
 	 * PlayerType.Human
 	 */
-	public final static PlayerType players[] = {PlayerType.School, PlayerType.AI};
+	public final static PlayerType players[] = {PlayerType.School};
 	
 	public static void main(String[] argv) {
 		DungeonMaze dm = new DungeonMaze();
