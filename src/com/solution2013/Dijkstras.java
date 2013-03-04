@@ -75,9 +75,9 @@ public class Dijkstras
 
 			dist -= 1;		// don't include the space we're on
 
-			if (keys == 0 && dist <= 2)
+			if (keys == 0 && dist <= 7)
 				return toCloseKey;
-			else if (keys == 1 & dist <= 1)
+			else if (keys == 1 & dist <= 3)
 				return toCloseKey;
 		}
 

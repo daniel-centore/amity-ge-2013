@@ -28,7 +28,7 @@ public class Tournament {
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.	
 	 */
-	public final static int vision[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+	public final static int vision[] = {7};
 	/*
 	 * Possible players are:
 	 * PlayerType.AI
