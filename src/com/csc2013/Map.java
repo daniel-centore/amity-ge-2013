@@ -152,11 +152,11 @@ public class Map {
 	    }
 	    if(playerLocation.getY() > 0) {
 	        MapBox SouthBox = MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()+1];
-	        MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()-1] = new MapBox(BoxType.Open, SouthBox.South, SouthBox.East, SouthBox.West, SouthBox.hasKey(), SouthBox.isEnd());
+	        MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()+1] = new MapBox(BoxType.Open, SouthBox.South, SouthBox.East, SouthBox.West, SouthBox.hasKey(), SouthBox.isEnd());
 	    }
 	    if(playerLocation.getY() < MapSize.y) {
 	        MapBox NorthBox = MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()-1];
-	        MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()+1] = new MapBox(NorthBox.North, BoxType.Open, NorthBox.East, NorthBox.West, NorthBox.hasKey(), NorthBox.isEnd());
+	        MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()-1] = new MapBox(NorthBox.North, BoxType.Open, NorthBox.East, NorthBox.West, NorthBox.hasKey(), NorthBox.isEnd());
 	    }
 	    
 

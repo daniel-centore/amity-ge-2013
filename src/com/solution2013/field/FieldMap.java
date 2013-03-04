@@ -2,6 +2,7 @@ package com.solution2013.field;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,13 +11,11 @@ import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
 
-
 public class FieldMap
 {
 	// Map of how much we know of the maze
 	private HashMap<Point, Space> map = new HashMap<>();
 
-	
 	// Player's current location
 	private Point location = new Point(0, 0);
 
@@ -28,22 +27,19 @@ public class FieldMap
 	{
 		// Current square
 		fillSurrounding(vision.CurrentPoint, location.x, location.y);
-		
+
 		// North
 		for (int i = 0; i < vision.mNorth; i++)
 			fillSurrounding(vision.North[i], location.x, location.y + i + 1);
-		
-		
+
 		// South
 		for (int i = 0; i < vision.mSouth; i++)
 			fillSurrounding(vision.South[i], location.x, location.y - i - 1);
-		
-		
+
 		// East
 		for (int i = 0; i < vision.mEast; i++)
 			fillSurrounding(vision.East[i], location.x + i + 1, location.y);
-		
-		
+
 		// West
 		for (int i = 0; i < vision.mWest; i++)
 			fillSurrounding(vision.West[i], location.x - i - 1, location.y);
@@ -61,6 +57,7 @@ public class FieldMap
 		if (box.hasKey()) // If it has a key mark it as a key
 			type = BoxType.Key;
 
+		//		System.out.println(location+" "+x+" "+y);
 		saveSpace(x, y, type);
 
 		// Now grab the surroundings
@@ -89,49 +86,49 @@ public class FieldMap
 
 			if (sp.getType() != type)
 				throw new RuntimeException("Expected type " + sp + " at " + p.x + "," + p.y + " but asked to save " + type);
-			
+
 			return sp;
 		}
 		else
 		{
 			Space sp = new Space(x, y, type);		// add space
 			map.put(p, sp);
-			
+
 			// link space to surroundings
-			
+
 			Point n = new Point(x, y + 1);
 			Point s = new Point(x, y - 1);
 			Point e = new Point(x + 1, y);
 			Point w = new Point(x - 1, y);
-			
+
 			if (map.containsKey(n))
 			{
 				Space temp = map.get(n);
 				sp.setNorth(temp);
 				temp.setSouth(sp);
 			}
-			
+
 			if (map.containsKey(s))
 			{
 				Space temp = map.get(s);
 				sp.setSouth(temp);
 				temp.setNorth(sp);
 			}
-			
+
 			if (map.containsKey(e))
 			{
 				Space temp = map.get(e);
 				sp.setEast(temp);
 				temp.setWest(sp);
 			}
-			
+
 			if (map.containsKey(w))
 			{
 				Space temp = map.get(w);
 				sp.setWest(temp);
 				temp.setEast(sp);
 			}
-			
+
 			return sp;
 		}
 	}
@@ -147,15 +144,15 @@ public class FieldMap
 		case North:
 			location = new Point(location.x, location.y + 1);
 			break;
-			
+
 		case South:
 			location = new Point(location.x, location.y - 1);
 			break;
-			
+
 		case East:
 			location = new Point(location.x + 1, location.y);
 			break;
-			
+
 		case West:
 			location = new Point(location.x - 1, location.y);
 			break;
@@ -177,24 +174,24 @@ public class FieldMap
 	{
 		Point p;
 		Space sp;
-		
+
 		p = new Point(location.x, location.y + 1);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
-		
+
 		p = new Point(location.x, location.y - 1);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
-		
+
 		p = new Point(location.x + 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
-		
+
 		p = new Point(location.x - 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 	}
-	
+
 	/**
 	 * Collects a {@link List} of all the {@link Space}s in our map which are not blocked.
 	 * This function includes doors.
@@ -203,13 +200,13 @@ public class FieldMap
 	public List<Space> getUnblockedSpaces()
 	{
 		ArrayList<Space> result = new ArrayList<>();
-		
+
 		for (Space sp : map.values())
 		{
 			if (sp.getType() != BoxType.Blocked)
 				result.add(sp);
 		}
-		
+
 		return result;
 	}
 
