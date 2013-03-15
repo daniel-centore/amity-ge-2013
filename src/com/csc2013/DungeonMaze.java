@@ -196,7 +196,6 @@ public class DungeonMaze extends BasicGame {
                 try {
 					container.reinit();
 				} catch (SlickException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }

@@ -62,6 +62,8 @@ public class Dijkstras
 		Stack<SpaceWrapper> toExit = shortestToType(map.getLocation(), BoxType.Exit);
 		if (toExit != null)
 			return toExit;
+		
+		// TODO: Find shortest path to an exit which includes doors. This is for if we already know the map.
 
 		// If standing on key, grab it
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
@@ -106,11 +108,14 @@ public class Dijkstras
 				{
 					// Find a path to the key
 					Stack<SpaceWrapper> toKey = shortestToType(map.getLocation(), sp);
+					
+					if (toKey == null) 			// This key is impossible to get to right now. Try another key.
+						continue;
 
 					// Find a path from the key to the closest door
 					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
 
-					if (toDoor == null) // There are no known doors. Just quit the whole key+door search.
+					if (toDoor == null) 		// There are no known doors. Just quit the whole key+door search.
 						break;
 
 					// Combine the key+door stacks
@@ -221,10 +226,10 @@ public class Dijkstras
 
 			// Choose the vertex with the least distance
 			SpaceWrapper min = min(vertices.values());
-
+			
 			if (min == null) // No possible path to our goal
 				return null;
-
+			
 			min.setRemoved(true);			// Remove it from the graph (or "mark it as visited")
 
 			if (min.getSpace() != null)
@@ -282,7 +287,12 @@ public class Dijkstras
 					shortest = next;
 			}
 		}
-
+		
+		if (shortest.getLength() == Integer.MAX_VALUE)		// The 'shortest' path is impossible to get to.
+		{
+			return null;
+		}
+		
 		return shortest;
 	}
 

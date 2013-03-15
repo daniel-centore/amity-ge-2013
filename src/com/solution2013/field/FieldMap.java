@@ -2,7 +2,6 @@ package com.solution2013.field;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,14 +9,40 @@ import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
 import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
+import com.solution2013.LearningTracker;
 
 public class FieldMap
 {
 	// Map of how much we know of the maze
+	// This map is a running map of the *current* game
 	private HashMap<Point, Space> map = new HashMap<>();
+	
+	// Map of the original maze
+	// As we collect data about the maze we add it here
+	// However, if we pick up a key or open a door, this new knowledge is not added
+	// This is so we can reuse the map in the future.
+	private HashMap<Point, Space> originalMap = null;
 
 	// Player's current location
 	private Point location = new Point(0, 0);
+	
+	public FieldMap(LearningTracker lt)
+	{
+		originalMap = lt.nextMap();
+		updateData(originalMap);
+	}
+	
+	/**
+	 * Inserts all the data from 'data' into this.map without referencing any of the original objects.
+	 * @param data
+	 */
+	private void updateData(HashMap<Point, Space> data)
+	{
+		for (Space s : data.values())
+		{
+			saveSpace(s.getX(), s.getY(), s.getType());
+		}
+	}
 
 	/**
 	 * Fills in our map with as much information as can be derived from the {@link PlayerVision}
@@ -91,9 +116,12 @@ public class FieldMap
 		}
 		else
 		{
+			if (!originalMap.containsKey(p))
+				originalMap.put(p, new Space(x, y, type));		// add the space as it existed in the original map to the learned map
+			
 			Space sp = new Space(x, y, type);		// add space
 			map.put(p, sp);
-
+			
 			// link space to surroundings
 
 			Point n = new Point(x, y + 1);

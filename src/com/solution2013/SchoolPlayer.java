@@ -3,6 +3,8 @@ package com.solution2013;
 import java.awt.Point;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
+
 import org.newdawn.slick.SlickException;
 
 import com.csc2013.DungeonMaze.Action;
@@ -22,8 +24,9 @@ import com.solution2013.field.SpaceWrapper;
  */
 public class SchoolPlayer
 {
-
-	public FieldMap map = new FieldMap();
+	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
+	
+	public FieldMap map = new FieldMap(LEARNING_TRACKER);
 
 	public SchoolPlayer() throws SlickException
 	{
@@ -103,12 +106,14 @@ public class SchoolPlayer
 			return Action.Pickup;
 		}
 		
+//		System.out.println(currentStack);
+		
 		Action act = toAction(currentStack);
 		if (act != Action.Use)
 			currentStack.pop(); // pop off our last movement
 		else
 			currentStack = null; // force a recalculation next time. We just opened a door.
-
+		
 		return act;
 	}
 
