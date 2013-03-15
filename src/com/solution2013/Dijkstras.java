@@ -64,6 +64,17 @@ public class Dijkstras
 			return toExit;
 		
 		// TODO: Find shortest path to an exit which includes doors. This is for if we already know the map.
+		// TODO: Once this is done, delete the old find exit route as the new one will do a better job of finding them (ie if there is an exit behind a door and one not)
+		
+		// Find shortest path to any exit
+		List<Space> exits = new ArrayList<>();
+		for (Space s : map.getMap().values())
+		{
+			if (s.getType() == BoxType.Exit)
+				exits.add(s);
+		}
+		
+		
 
 		// If standing on key, grab it
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
