@@ -8,7 +8,7 @@ import com.csc2013.DungeonMaze.BoxType;
 public class Map {
 	private Point MapSize;
 	private int MapBoxWidth;
-	public static MapBox[][] MapGrid;
+	static MapBox[][] MapGrid;
 	BoxType[][] Grid;
 	private TiledMap map;
 	private String name = "";
@@ -169,7 +169,7 @@ public class Map {
 	
 	public boolean unlockDoor(Point playerLocation) {
         MapBox Location = MapGrid[(int) playerLocation.getX()][(int) playerLocation.getY()];
-        Point DoorLocation = new Point();
+        Point DoorLocation = new Point(); 
         
         //check for each direction for a door
         if(Location.North == BoxType.Door) {

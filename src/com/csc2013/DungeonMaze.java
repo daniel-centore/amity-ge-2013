@@ -6,7 +6,6 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 import com.solution2013.SchoolPlayer;
-import com.solution2013.field.FieldMap;
 
 /**
  * 
@@ -71,7 +70,13 @@ public class DungeonMaze extends BasicGame {
 	
 	// Build GameContainer, limit FPS to 60, instantiate the map and player
 	public void init(GameContainer container) throws SlickException {
-		// if all maps run through go back to first map
+		// suppress Slick2Ds output
+		container.setVerbose(false);
+		
+		//set the vision each time init() is called
+		PlayerVision.distanceToView = Tournament.vision[visionTracker];
+
+		// if all maps run through go back to first map				
 		if (mapTracker == Tournament.maps.length) {
 			personTracker++;
 			mapTracker = 0;
@@ -81,15 +86,16 @@ public class DungeonMaze extends BasicGame {
 		if (personTracker == Tournament.players.length) { 
 			visionTracker++;
 			personTracker = 0;
+
+			if (visionTracker < Tournament.vision.length) {
+				PlayerVision.distanceToView = Tournament.vision[visionTracker];
+			}
 		}
-		
-		if (visionTracker < Tournament.vision.length) {
-			PlayerVision.distanceToView = Tournament.vision[visionTracker];
-		}
-		
+        
 		if (visionTracker == Tournament.vision.length) { //END GAME
 			System.out.println();
 			System.out.println("****** FINAL RESULTS ******");
+			System.out.println("Maximum steps allowed: " + Tournament.maxSteps);
 			for (int v = 0; v < Tournament.vision.length; v++) {
 				System.out.println("--- Results for Vision Distance Set at " + Tournament.vision[v] + " ---");
 				System.out.print("\t");
@@ -129,23 +135,14 @@ public class DungeonMaze extends BasicGame {
 				school = new SchoolPlayer();
 			}
 			
-			testMap = new FieldMap();
+			// output for each run what the tournament settings are
+			System.out.println("-----");
+			System.out.println("Starting a DungeonMaze run with the following settings:");
+			System.out.println("Map: " + Tournament.maps[mapTracker]);
+			System.out.println("Player: " + Tournament.players[personTracker]);
+			System.out.println("Vision distance: " + Tournament.vision[visionTracker]);
 		}
 	}
-	
-	FieldMap testMap = null;
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.newdawn.slick.BasicGame#update(org.newdawn.slick.GameContainer, int)
-	 * 
-	 * Main Game loop
-	 * 
-	 * [Insert explanation here later]
-	 * 
-	 * Warnings suppressed as if(false) resolves to dead code.  Set to if true to play by hand
-	 * 
-	 */
 	
 	@SuppressWarnings("unused")
 	public void update(GameContainer container, int delta) {
@@ -156,82 +153,18 @@ public class DungeonMaze extends BasicGame {
         player.setMapBox();
         boolean show = true;
 		if(playerMoveTime <= 0 && gameRunning) {
-			
 		    if(curPlayer == PlayerType.Human) {
-		    	PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
-		    	testMap.fillVision(vision);
-				if (container.getInput().isKeyDown(Input.KEY_LEFT))
-				{
-					show = true;
-					lastAction = player.move(Action.West);
-					
-					if (lastAction == true)
-					{
-						steps++;
-						testMap.applyMove(Direction.West);
-					}
-				}
-				else if (container.getInput().isKeyDown(Input.KEY_RIGHT))
-				{
-					show = true;
-					lastAction = player.move(Action.East);
-					
-					if (lastAction == true)
-					{
-						steps++;
-						testMap.applyMove(Direction.East);
-					}
-				}
-				else if (container.getInput().isKeyDown(Input.KEY_UP))
-				{
-					show = true;
-					lastAction = player.move(Action.North);
-					
-					if (lastAction == true)
-					{
-						steps++;
-						testMap.applyMove(Direction.North);
-					}
-				}
-				else if (container.getInput().isKeyDown(Input.KEY_DOWN))
-				{
-					show = true;
-					lastAction = player.move(Action.South);
-					
-					if (lastAction == true)
-					{
-						steps++;
-						testMap.applyMove(Direction.South);
-					}
-				}
-				else if (container.getInput().isKeyDown(Input.KEY_SPACE))
-				{
-					show = true;
-					lastAction = player.move(Action.Pickup);
-					testMap.applyPickupKey();
-					if (lastAction == true)
-					{
-						steps++;
-					}
-				}
-				else if (container.getInput().isKeyDown(Input.KEY_ENTER))
-				{
-					show = true;
-					lastAction = player.move(Action.Use);
-					testMap.applyOpenDoor();
-					if (lastAction == true)
-					{
-						steps++;
-					}
-				}
-				else if (container.getInput().isKeyPressed(Input.KEY_ESCAPE))
-				{
-					System.exit(0);
-				}
-				else if (container.getInput().isKeyPressed(Input.KEY_0))
-				{
-					show = false;
-				}
+                PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
+    			if (container.getInput().isKeyDown(Input.KEY_LEFT)) {show = true; lastAction = player.move(Action.West); if (lastAction == true) {steps++;}}
+    			else if (container.getInput().isKeyDown(Input.KEY_RIGHT)) {show = true; lastAction = player.move(Action.East);if (lastAction == true) {steps++;}}
+    			else if (container.getInput().isKeyDown(Input.KEY_UP)) {show = true; lastAction = player.move(Action.North); if (lastAction == true) {steps++;}}
+    			else if (container.getInput().isKeyDown(Input.KEY_DOWN)) {show = true; lastAction = player.move(Action.South); if (lastAction == true) {steps++;}}
+                else if (container.getInput().isKeyDown(Input.KEY_SPACE)) {show = true; lastAction = player.move(Action.Pickup); if (lastAction == true) {steps++;} /*printPlayerLoc(vision);*/}
+                else if (container.getInput().isKeyDown(Input.KEY_ENTER)) {show = true; lastAction = player.move(Action.Use); if (lastAction == true) {steps++;} /*printPlayerVision(vision);*/}
+    			else if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)){System.exit(0);}
+    			else if(container.getInput().isKeyPressed(Input.KEY_0)) { 
+    	            show = false;
+    	        }
 		    } else if (curPlayer == PlayerType.AI) {
 		        PlayerVision vision = new PlayerVision(map, player.getPlayerGridLocation());
 		        lastAction = player.move(ai.nextMove(vision, player.getKeys(), lastAction));
@@ -263,11 +196,83 @@ public class DungeonMaze extends BasicGame {
                 try {
 					container.reinit();
 				} catch (SlickException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }
             playerMoveTime = moveTime;
 		}
+	}
+	
+	public void printPlayerLoc(PlayerVision vision) {
+        System.out.println("---------------------------------");
+        System.out.print(vision.CurrentPoint.North);
+        System.out.print(vision.CurrentPoint.South);
+        System.out.print(vision.CurrentPoint.East);
+        System.out.print(vision.CurrentPoint.West);
+        System.out.println("---------------------------------");
+	}
+	
+	public void printPlayerVision(PlayerVision vision) {
+        System.out.println("---------------------------------");
+        System.out.print("North: ");
+	    //System.out.print(vision.CurrentPoint.North);
+	    for(int i = 0; i < vision.mNorth; i++) {
+            if(vision.North[i].hasKey()) {
+                System.out.print("Key");
+            } 
+            System.out.print(vision.North[i].North);
+            System.out.print(vision.North[i].South);
+            System.out.print(vision.North[i].East);
+            System.out.print(vision.North[i].West);
+            
+            System.out.print(" ");
+	    }
+	    System.out.println("//");
+        System.out.print("South: ");
+        //System.out.print(vision.CurrentPoint.South);
+        for(int i = 0; i < vision.mSouth; i++) {
+            if(vision.South[i].hasKey()) {
+                System.out.print("Has");
+            }
+            System.out.print(vision.South[i].North);
+            System.out.print(vision.South[i].South);
+            System.out.print(vision.South[i].East);
+            System.out.print(vision.South[i].West);
+            
+            System.out.print(" ");
+        }
+        System.out.println("//");
+        System.out.print("East: ");
+        //System.out.print(vision.CurrentPoint.East);
+        for(int i = 0; i < vision.mEast; i++) {
+            if(vision.East[i].hasKey()) {
+                System.out.print("Key");
+            } 
+            System.out.print(vision.East[i].North);
+            System.out.print(vision.East[i].South);
+            System.out.print(vision.East[i].East);
+            System.out.print(vision.East[i].West);
+            
+            System.out.print(" ");
+        }
+        System.out.println("//");
+        System.out.print("West: ");
+        //System.out.print(vision.CurrentPoint.West);
+        for(int i = 0; i < vision.mWest; i++) {
+            if(vision.West[i].hasKey()) {
+                System.out.print("Key");
+            } 
+            System.out.print(vision.West[i].North);
+            System.out.print(vision.West[i].South);
+            System.out.print(vision.West[i].East);
+            System.out.print(vision.West[i].West);
+            
+            System.out.print(" ");
+        }
+        System.out.println("//");
+        System.out.println("---------------------------------");
+	    
 	}
 	
 	/*
