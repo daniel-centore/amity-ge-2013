@@ -22,12 +22,6 @@ public class LearningTracker
 	private int currentMap = -1;
 	private List<HashMap<Point, Space>> maps = new ArrayList<>();
 	
-	
-	public LearningTracker()
-	{
-		
-	}
-	
 	/**
 	 * Gets the next map to use for learning.
 	 * This will be copied for 'map' in {@link FieldMap}.
@@ -41,8 +35,6 @@ public class LearningTracker
 		{
 			currentMap = 0;
 		}
-		
-		System.out.println("Map: "+currentMap);
 		
 		if (maps.size() >= currentMap)
 			maps.add(new HashMap<Point, Space>());
