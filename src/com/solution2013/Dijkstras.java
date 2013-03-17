@@ -66,13 +66,6 @@ public class Dijkstras
 		Stack<SpaceWrapper> toExit = new DijkstraExit(keys, location, map).toExit();//shortestToType(location, BoxType.Exit);
 		if (toExit != null)
 			return toExit;
-		
-		// TODO: Find shortest path to an exit which includes doors. This is for if we already know the map.
-		// TODO: Once this is done, delete the old find exit route as the new one will do a better job of finding them (ie if there is an exit behind a door and one not)
-		
-		// Find shortest path to any exit
-		
-		
 
 		// If standing on key, grab it
 		if (map.get(location).getType() == BoxType.Key)
@@ -177,6 +170,13 @@ public class Dijkstras
 		return min;		// Return the shortest path
 	}
 	
+	/**
+	 * Returns the shortest path to a type
+	 * Special Case: If the start point IS of type type, then it returns NULL!
+	 * @param start
+	 * @param type
+	 * @return
+	 */
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
 	{
 		return shortestToType(start, type, null);
