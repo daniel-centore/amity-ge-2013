@@ -52,7 +52,7 @@ public class Space
 	 * @throws RuntimeException If this space is a door and t is not a door (ie we are not looking for one)
 	 * @return The difficulty of traversing the node.
 	 */
-	public int difficulty(BoxType t, int keys)
+	public int difficulty(BoxType t, Space goal, int keys)
 	{
 		switch (type)
 		{
@@ -60,7 +60,7 @@ public class Space
 			return Integer.MAX_VALUE;
 
 		case Door:
-			if (t == BoxType.Door)
+			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
 				return 1; // if we are looking for a door then give it a weight of one
 			else
 				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");

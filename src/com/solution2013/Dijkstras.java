@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.Stack;
 
 import com.csc2013.DungeonMaze.BoxType;
+import com.solution2013.exit.DijkstraExit;
 import com.solution2013.field.FieldMap;
 import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
@@ -34,19 +35,22 @@ public class Dijkstras
 	}
 
 	private int keys;		// How many keys we have right now
-	private FieldMap map;	// The map we're referencing
+	private Point location;
+	private HashMap<Point, Space> map;
 
-	/**
-	 * Creates a new instance of the Dijkstra's algorithm.
-	 * You should regenerate this every time the number of keys or the map changes
-	 * However, you don't actually need to until you run out of moves on your Stack.
-	 * 	Sometimes though with more knowledge a better decision can be made. 
-	 * @param keys Number of keys we have
-	 * @param map The {@link FieldMap} of the maze
-	 */
 	public Dijkstras(int keys, FieldMap map)
 	{
 		this.keys = keys;
+		this.location = map.getLocation();
+		this.map = map.getMap();
+		
+//		new DijkstraExit(keys, map).toExit();
+	}
+	
+	public Dijkstras(int keys, Point location, HashMap<Point, Space> map)
+	{
+		this.keys = keys;
+		this.location = location;
 		this.map = map;
 	}
 
@@ -59,7 +63,7 @@ public class Dijkstras
 	public Stack<SpaceWrapper> getNext() throws GetKeyException
 	{
 		// Find shortest path to an exit. Take it if it exists.
-		Stack<SpaceWrapper> toExit = shortestToType(map.getLocation(), BoxType.Exit);
+		Stack<SpaceWrapper> toExit = shortestToType(location, BoxType.Exit);
 		if (toExit != null)
 			return toExit;
 		
@@ -67,21 +71,15 @@ public class Dijkstras
 		// TODO: Once this is done, delete the old find exit route as the new one will do a better job of finding them (ie if there is an exit behind a door and one not)
 		
 		// Find shortest path to any exit
-		List<Space> exits = new ArrayList<>();
-		for (Space s : map.getMap().values())
-		{
-			if (s.getType() == BoxType.Exit)
-				exits.add(s);
-		}
 		
 		
 
 		// If standing on key, grab it
-		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
+		if (map.get(location).getType() == BoxType.Key)
 			throw new GetKeyException();
 
 		// Grab keys if we need them and they are nearby
-		Stack<SpaceWrapper> toCloseKey = shortestToType(map.getLocation(), BoxType.Key);
+		Stack<SpaceWrapper> toCloseKey = shortestToType(location, BoxType.Key);
 		if (toCloseKey != null)
 		{
 			int dist = toCloseKey.size();
@@ -98,7 +96,7 @@ public class Dijkstras
 		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();
 
 		// Shortest path to unexplored not including doors
-		Stack<SpaceWrapper> toUnknown = shortestToType(map.getLocation(), null, null);
+		Stack<SpaceWrapper> toUnknown = shortestToType(location, null, null);
 
 		if (toUnknown != null)
 			possiblePaths.add(toUnknown);
@@ -106,19 +104,19 @@ public class Dijkstras
 		// Shortest path to unexplored through a door
 		if (keys > 0) 	// Just go straight to the door. We already have a key.
 		{
-			Stack<SpaceWrapper> toDoor = shortestToType(map.getLocation(), BoxType.Door);
+			Stack<SpaceWrapper> toDoor = shortestToType(location, BoxType.Door);
 			if (toDoor != null)
 				possiblePaths.add(toDoor);
 		}
 		else
 		// We have no keys - find all key+door paths.
 		{
-			for (Space sp : map.getUnblockedSpaces())		// Check the map for all keys
+			for (Space sp : this.getUnblockedSpaces())		// Check the map for all keys
 			{
 				if (sp.getType() == BoxType.Key)
 				{
 					// Find a path to the key
-					Stack<SpaceWrapper> toKey = shortestToType(map.getLocation(), sp);
+					Stack<SpaceWrapper> toKey = shortestToType(location, sp);
 					
 					if (toKey == null) 			// This key is impossible to get to right now. Try another key.
 						continue;
@@ -178,7 +176,7 @@ public class Dijkstras
 
 		return min;		// Return the shortest path
 	}
-
+	
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
 	{
 		return shortestToType(start, type, null);
@@ -200,7 +198,7 @@ public class Dijkstras
 	 */
 	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type, Space goal)
 	{
-		HashMap<Space, SpaceWrapper> vertices = wrap(map.getUnblockedSpaces(), start);
+		HashMap<Space, SpaceWrapper> vertices = wrap(this.getUnblockedSpaces(), start);
 
 		while (true)
 		{
@@ -256,10 +254,10 @@ public class Dijkstras
 					if (wrap.isRemoved())			// Ignore the item if we've already visited it
 						continue;
 
-					if (sp != null && sp.getType() == BoxType.Door && type != BoxType.Door)		// Don't include doors if we are not looking for a door
+					if (sp != null && sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
 						continue;
 
-					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, keys)); // Difficulty for getting to an unexplored area is 1
+					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, goal, keys)); // Difficulty for getting to an unexplored area is 1
 
 					// If this is the shortest path to the node so far, label it as such.
 					if (length < wrap.getLength())
@@ -336,5 +334,24 @@ public class Dijkstras
 
 		return result;
 	}
+	
+	/**
+	 * Collects a {@link List} of all the {@link Space}s in our map which are not blocked.
+	 * This function includes doors.
+	 * @return The list
+	 */
+	public List<Space> getUnblockedSpaces()
+	{
+		ArrayList<Space> result = new ArrayList<>();
+
+		for (Space sp : map.values())
+		{
+			if (sp.getType() != BoxType.Blocked)
+				result.add(sp);
+		}
+
+		return result;
+	}
+
 
 }

@@ -221,24 +221,6 @@ public class FieldMap
 	}
 
 	/**
-	 * Collects a {@link List} of all the {@link Space}s in our map which are not blocked.
-	 * This function includes doors.
-	 * @return The list
-	 */
-	public List<Space> getUnblockedSpaces()
-	{
-		ArrayList<Space> result = new ArrayList<>();
-
-		for (Space sp : map.values())
-		{
-			if (sp.getType() != BoxType.Blocked)
-				result.add(sp);
-		}
-
-		return result;
-	}
-
-	/**
 	 * Gets the entire map. The key is the {@link Point} the {@link Space} is located on relative to (0,0) being the initial position.
 	 * North, South, East, and West are +y,-y,+x,-x respectively. Please do not edit the map.
 	 * @return The map.
