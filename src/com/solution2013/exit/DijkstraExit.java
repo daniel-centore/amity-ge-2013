@@ -35,10 +35,9 @@ public class DijkstraExit
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
-		int iters = -1;
+		int shortest = Integer.MAX_VALUE;
 		while (paths.size() > 0)
 		{
-			iters++;
 			
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())
@@ -54,7 +53,9 @@ public class DijkstraExit
 				{
 					p.addToPath(toExit);		// Add going to the exit to the path
 					solved.add(p);				// Add the path to the solved list
-					//					itr.remove();				// Remove the path from the ones we are still considering
+					
+					if (p.getPath().size() < shortest)		// Mark the path as shortest if it is
+						shortest = p.getPath().size();
 				}
 			}
 			
@@ -65,6 +66,12 @@ public class DijkstraExit
 			{
 				// Get keys
 				Path p = itr.next();
+				
+				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
+				{
+					itr.remove();
+					continue;
+				}
 
 				// Get a list of all keys that we can walk to w/o going through doors
 				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap());
@@ -115,6 +122,12 @@ public class DijkstraExit
 			{
 				// Get doors
 				Path p = itr.next();
+				
+				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
+				{
+					itr.remove();
+					continue;
+				}
 
 				itr.remove();		// Don't need the original path anymore. We'll either give up on it or branch from it.
 				if (p.getKeys() == 0)
