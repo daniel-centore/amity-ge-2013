@@ -51,9 +51,8 @@ public class Path
 
 	public void addToPath(Stack<SpaceWrapper> proceed)
 	{
-		SpaceWrapper first = proceed.pop();
-		if (!first.getSpace().equals(path.get(path.size() - 1).getSpace()))		// Don't put on the first element if it matches the last element of our current list
-			path.add(first);
+		if (proceed.peek().getSpace().equals(path.get(path.size() - 1).getSpace()))		// Don't put on the first element if it matches the last element of our current list
+			proceed.pop();
 
 		while (!proceed.isEmpty())
 		{

@@ -35,9 +35,10 @@ public class DijkstraExit
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
+		int iters = -1;
 		while (paths.size() > 0)
 		{
-//			System.out.println(paths.get(0));
+			iters++;
 			
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())
@@ -85,18 +86,23 @@ public class DijkstraExit
 				}
 
 				Path next = p.clone();
-
+				
 				// Find paths to go to 0,1,...,n keys. This is basically a greedy salesman algorithm repeated for multiple keys.
 				// The 0 keys path is already accounted for - it's the one we're in
 				for (int i = 1; i <= keys.size(); i++)
 				{
+					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap());		// Load a new pathfinder with this map
 					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
+					
+					
 					if (toKey == null)		// This happens if we are already standing on the key
+					{
 						continue;
+					}
 					
 					next.addToPath(toKey);
 					tempPaths.add(next);
-
+					
 					next = next.clone();
 				}
 			}
@@ -122,7 +128,7 @@ public class DijkstraExit
 
 				for (Space s : p.getMap().values())
 				{
-					if (s.getType() == BoxType.Door)		// TODO: Check to make sure the shortestToType part works w/ doors as the goal
+					if (s.getType() == BoxType.Door)
 					{
 						Stack<SpaceWrapper> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)		// No possible path to that door
@@ -146,7 +152,7 @@ public class DijkstraExit
 			if (ideal == null || s.getPath().size() < ideal.getPath().size())
 				ideal = s;
 		}
-
+		
 		if (ideal == null)		// No known exits
 			return null;
 		
@@ -156,6 +162,8 @@ public class DijkstraExit
 		{
 			result.push(l.get(i));
 		}
+		
+		
 		
 		return result;
 	}
