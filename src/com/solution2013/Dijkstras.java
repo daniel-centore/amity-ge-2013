@@ -43,8 +43,6 @@ public class Dijkstras
 		this.keys = keys;
 		this.location = map.getLocation();
 		this.map = map.getMap();
-		
-//		new DijkstraExit(keys, map).toExit();
 	}
 	
 	public Dijkstras(int keys, Point location, HashMap<Point, Space> map)

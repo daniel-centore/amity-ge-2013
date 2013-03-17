@@ -9,10 +9,8 @@ import java.util.Stack;
 
 import com.csc2013.DungeonMaze.BoxType;
 import com.solution2013.Dijkstras;
-import com.solution2013.field.FieldMap;
 import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
-import com.solution2013.utils.Permutations;
 
 public class DijkstraExit
 {
@@ -84,8 +82,6 @@ public class DijkstraExit
 						keys.add(s);
 				}
 				
-//				System.out.println(keys);
-
 				if (keys.size() == 0 && p.getKeys() == 0)		// There are no more keys to get and we're outta keys. Kill the path.
 				{
 					itr.remove();

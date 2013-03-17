@@ -3,8 +3,6 @@ package com.solution2013;
 import java.awt.Point;
 import java.util.Stack;
 
-import javax.management.RuntimeErrorException;
-
 import org.newdawn.slick.SlickException;
 
 import com.csc2013.DungeonMaze.Action;
@@ -105,8 +103,6 @@ public class SchoolPlayer
 			currentStack = null;
 			return Action.Pickup;
 		}
-		
-//		System.out.println(currentStack);
 		
 		Action act = toAction(currentStack);
 		if (act != Action.Use)
