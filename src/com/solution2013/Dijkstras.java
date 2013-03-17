@@ -63,7 +63,7 @@ public class Dijkstras
 	public Stack<SpaceWrapper> getNext() throws GetKeyException
 	{
 		// Find shortest path to an exit. Take it if it exists.
-		Stack<SpaceWrapper> toExit = shortestToType(location, BoxType.Exit);
+		Stack<SpaceWrapper> toExit = new DijkstraExit(keys, location, map).toExit();//shortestToType(location, BoxType.Exit);
 		if (toExit != null)
 			return toExit;
 		

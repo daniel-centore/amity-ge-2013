@@ -84,6 +84,7 @@ public class SchoolPlayer
 
 	public Action amityNextMove(PlayerVision vision, int keyCount)
 	{
+		System.out.println(keyCount);
 		int oldMapSize = map.getMap().size();
 		map.fillVision(vision);
 

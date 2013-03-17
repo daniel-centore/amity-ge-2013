@@ -21,11 +21,11 @@ public class DijkstraExit
 	private Point currentLocation;
 	private HashMap<Point, Space> currentMap;
 
-	public DijkstraExit(int keys, FieldMap map)
+	public DijkstraExit(int keys, Point currentLocation, HashMap<Point, Space> currentMap)
 	{
 		this.currentKeys = keys;
-		this.currentLocation = map.getLocation();
-		this.currentMap = map.getMap();
+		this.currentLocation = currentLocation;
+		this.currentMap = currentMap;
 	}
 
 	public Stack<SpaceWrapper> toExit()
@@ -90,7 +90,11 @@ public class DijkstraExit
 				// The 0 keys path is already accounted for - it's the one we're in
 				for (int i = 1; i <= keys.size(); i++)
 				{
-					next.addToPath(k.shortestToType(p.getLocation(), BoxType.Key));
+					Stack<SpaceWrapper> toKey = k.shortestToType(p.getLocation(), BoxType.Key);
+					if (toKey == null)		// This happens if we are already standing on the key
+						continue;
+					
+					next.addToPath(toKey);
 					tempPaths.add(next);
 
 					next = next.clone();
@@ -143,9 +147,17 @@ public class DijkstraExit
 				ideal = s;
 		}
 
-		System.out.println(ideal);
+		if (ideal == null)		// No known exits
+			return null;
+		
+		List<SpaceWrapper> l = ideal.getPath();
+		Stack<SpaceWrapper> result = new Stack<>();
+		for (int i = l.size() - 1; i >= 0; i--)
+		{
+			result.push(l.get(i));
+		}
 
-		return null;
+		return result;
 	}
 
 }
