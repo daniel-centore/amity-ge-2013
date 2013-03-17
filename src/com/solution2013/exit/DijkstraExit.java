@@ -90,7 +90,7 @@ public class DijkstraExit
 				// The 0 keys path is already accounted for - it's the one we're in
 				for (int i = 1; i <= keys.size(); i++)
 				{
-					Stack<SpaceWrapper> toKey = k.shortestToType(p.getLocation(), BoxType.Key);
+					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
 					if (toKey == null)		// This happens if we are already standing on the key
 						continue;
 					
@@ -156,7 +156,7 @@ public class DijkstraExit
 		{
 			result.push(l.get(i));
 		}
-
+		
 		return result;
 	}
 
