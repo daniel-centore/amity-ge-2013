@@ -66,6 +66,7 @@ public class Path
 			case Door:
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
 				// This provides a pretty good approximation although certainly not a perfect one.
+				// TODO: If we can make DijkstraExit efficient enough, then remove this
 				pruneKeys();
 				
 				keys--;

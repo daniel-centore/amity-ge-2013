@@ -28,6 +28,7 @@ public class DijkstraExit
 
 	public Stack<SpaceWrapper> toExit()
 	{
+		// TODO: Switch to a depth-first search so that we can prune out bad searches much earlier
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
 
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
@@ -111,7 +112,6 @@ public class DijkstraExit
 				{
 					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap());		// Load a new pathfinder with this map
 					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
-					
 					
 					if (toKey == null)		// This happens if we are already standing on the key
 					{
