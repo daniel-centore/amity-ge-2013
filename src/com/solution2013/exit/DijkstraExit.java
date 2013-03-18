@@ -34,8 +34,12 @@ public class DijkstraExit
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
 		int shortest = Integer.MAX_VALUE;
+		long time = System.currentTimeMillis();
 		while (paths.size() > 0)
 		{
+			// TODO: Tweak the timing here so we don't run out of RAM but can still get our calculations in
+			if (System.currentTimeMillis() - time > 120000)		// Timeout after 2 minutes
+				break;
 			
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())

@@ -16,7 +16,7 @@ public class Tournament {
 	/*
 	 * This variable controls how many steps a player can take before starting the next game
 	 */
-	public final static int maxSteps = 200;
+	public final static int maxSteps = 1000;
 	/*
 	 * Possible maps to use are:
 	 * map01.tmx

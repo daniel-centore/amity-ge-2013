@@ -45,8 +45,10 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
+//		long time = System.currentTimeMillis();
 		Action action = amityNextMove(vision, keyCount);
 
+//		System.out.println("TIME: "+(System.currentTimeMillis() - time));
 		switch (action)
 		// Apply the action we are about to take to the map
 		{

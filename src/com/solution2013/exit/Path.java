@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Stack;
 
 import com.csc2013.DungeonMaze.BoxType;
+import com.solution2013.Dijkstras;
 import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
 
@@ -30,7 +31,7 @@ public class Path
 		load(newMap);
 
 		path = new ArrayList<>();
-		path.add(new SpaceWrapper(0, map.get(location)));	// Put our current location on the move stack		// TODO: Clone the location so we don't damage it
+		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
 	}
 	
 	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<SpaceWrapper> path)
@@ -60,11 +61,13 @@ public class Path
 			BoxType type = next.getSpace().getType();
 			Point p = next.getSpace().getPoint();
 
-			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));
-
 			switch (type)
 			{
 			case Door:
+				// Pretend any keys inside an area are nonexistant after we've opened a door.
+				// This provides a pretty good approximation although certainly not a perfect one.
+				pruneKeys();
+				
 				keys--;
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
 				break;
@@ -73,7 +76,27 @@ public class Path
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
 				break;
 			}
+			
+			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));
 		}
+	}
+
+	private void pruneKeys()
+	{
+		Dijkstras k = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap());
+
+		for (Space s : this.getMap().values())
+		{
+			if (s.getType() == BoxType.Key)
+			{
+				Stack<SpaceWrapper> toKey = k.shortestToType(this.getLocation(), s);
+				if (toKey == null)
+					continue;
+
+				s.setType(BoxType.Open);
+			}
+		}
+		
 	}
 
 	/**

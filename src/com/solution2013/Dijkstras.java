@@ -18,8 +18,6 @@ import com.solution2013.field.SpaceWrapper;
 /**
  * Uses Dijkstra's pathfinding algorithm as a basis for finding an ideal path based on our current situation
  * 
- * TODO: Detail algorithm
- * 
  * @author Daniel Centore
  *
  */
