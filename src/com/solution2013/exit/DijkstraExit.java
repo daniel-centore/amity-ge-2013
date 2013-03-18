@@ -91,12 +91,23 @@ public class DijkstraExit
 					itr.remove();
 					continue;
 				}
+				
+				// Count the number of doors left on the board
+				int doors = 0;
+				for (Space s : p.getMap().values())
+				{
+					if (s.getType() == BoxType.Door)
+					{
+						doors++;
+					}
+				}
 
 				Path next = p.clone();
 				
 				// Find paths to go to 0,1,...,n keys. This is basically a greedy salesman algorithm repeated for multiple keys.
 				// The 0 keys path is already accounted for - it's the one we're in
-				for (int i = 1; i <= keys.size(); i++)
+				// Also, we don't look for more keys than there are doors
+				for (int i = 1; i <= Math.min(keys.size(), doors); i++)
 				{
 					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap());		// Load a new pathfinder with this map
 					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
