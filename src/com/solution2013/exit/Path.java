@@ -84,7 +84,7 @@ public class Path
 
 	private void pruneKeys()
 	{
-		Dijkstras k = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap());
+		Dijkstras k = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 
 		for (Space s : this.getMap().values())
 		{

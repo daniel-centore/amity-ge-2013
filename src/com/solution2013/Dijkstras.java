@@ -35,19 +35,22 @@ public class Dijkstras
 	private int keys;		// How many keys we have right now
 	private Point location;
 	private HashMap<Point, Space> map;
+	private int bestCase;
 
 	public Dijkstras(int keys, FieldMap map)
 	{
 		this.keys = keys;
 		this.location = map.getLocation();
 		this.map = map.getMap();
+		this.bestCase = map.getBestCase();
 	}
 	
-	public Dijkstras(int keys, Point location, HashMap<Point, Space> map)
+	public Dijkstras(int keys, Point location, HashMap<Point, Space> map, int bestCase)
 	{
 		this.keys = keys;
 		this.location = location;
 		this.map = map;
+		this.bestCase = bestCase;
 	}
 
 	/**
@@ -59,7 +62,7 @@ public class Dijkstras
 	public Stack<SpaceWrapper> getNext() throws GetKeyException
 	{
 		// Find shortest path to an exit. Take it if it exists.
-		Stack<SpaceWrapper> toExit = new DijkstraExit(keys, location, map).toExit();//shortestToType(location, BoxType.Exit);
+		Stack<SpaceWrapper> toExit = new DijkstraExit(keys, location, map, bestCase).toExit();//shortestToType(location, BoxType.Exit);
 		if (toExit != null)
 			return toExit;
 

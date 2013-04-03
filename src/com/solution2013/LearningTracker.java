@@ -21,6 +21,7 @@ public class LearningTracker
 {
 	private int currentMap = -1;
 	private List<HashMap<Point, Space>> maps = new ArrayList<>();
+	private List<Integer> bestCase = new ArrayList<>();
 	
 	/**
 	 * Gets the next map to use for learning.
@@ -40,5 +41,18 @@ public class LearningTracker
 			maps.add(new HashMap<Point, Space>());
 		
 		return maps.get(currentMap);
+	}
+	
+	public int getBestCase()
+	{
+		if (bestCase.size() <= currentMap)
+			bestCase.add(Integer.MAX_VALUE);
+		
+		return bestCase.get(currentMap);
+	}
+	
+	public void setBestCase(int i)
+	{
+		bestCase.set(currentMap, i);
 	}
 }

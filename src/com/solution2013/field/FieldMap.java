@@ -26,9 +26,13 @@ public class FieldMap
 	// Player's current location
 	private Point location = new Point(0, 0);
 	
+	private int bestCase;
+	
 	public FieldMap(LearningTracker lt)
 	{
 		originalMap = lt.nextMap();
+		bestCase = lt.getBestCase();
+		
 		updateData(originalMap);
 	}
 	
@@ -237,6 +241,11 @@ public class FieldMap
 	public Point getLocation()
 	{
 		return location;
+	}
+
+	public int getBestCase()
+	{
+		return bestCase;
 	}
 
 }

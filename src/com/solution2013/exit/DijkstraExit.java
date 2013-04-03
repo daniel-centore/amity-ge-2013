@@ -18,12 +18,14 @@ public class DijkstraExit
 	private int currentKeys;		// How many keys we have right now
 	private Point currentLocation;
 	private HashMap<Point, Space> currentMap;
+	private int bestCase;
 
-	public DijkstraExit(int keys, Point currentLocation, HashMap<Point, Space> currentMap)
+	public DijkstraExit(int keys, Point currentLocation, HashMap<Point, Space> currentMap, int bestCase)
 	{
 		this.currentKeys = keys;
 		this.currentLocation = currentLocation;
 		this.currentMap = currentMap;
+		this.bestCase = bestCase;
 	}
 
 	public Stack<SpaceWrapper> toExit()
@@ -34,13 +36,14 @@ public class DijkstraExit
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
-		int shortest = Integer.MAX_VALUE;
+		int shortest = bestCase;
+//		System.out.println(shortest);
 		long time = System.currentTimeMillis();
 		while (paths.size() > 0)
 		{
-			// TODO: Tweak the timing here so we don't run out of RAM but can still get our calculations in
-			if (System.currentTimeMillis() - time > 120000)		// Timeout after 2 minutes
-				break;
+//			// TODO: Tweak the timing here so we don't run out of RAM but can still get our calculations in
+//			if (System.currentTimeMillis() - time > 120000)		// Timeout after 2 minutes
+//				break;
 			
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())
@@ -49,7 +52,7 @@ public class DijkstraExit
 
 				Path p = itr.next();
 
-				Dijkstras d = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap());
+				Dijkstras d = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
 				Stack<SpaceWrapper> toExit = d.shortestToType(p.getLocation(), BoxType.Exit);
 				if (toExit != null)
@@ -72,12 +75,13 @@ public class DijkstraExit
 				
 				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
 				{
+//					System.out.println("Removing: Too Long");
 					itr.remove();
 					continue;
 				}
 
 				// Get a list of all keys that we can walk to w/o going through doors
-				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap());
+				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
 				List<Space> keys = new ArrayList<>();
 				for (Space s : p.getMap().values())
@@ -110,7 +114,7 @@ public class DijkstraExit
 				// Also, we don't look for more keys than there are doors
 				for (int i = 1; i <= Math.min(keys.size(), doors); i++)
 				{
-					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap());		// Load a new pathfinder with this map
+					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);		// Load a new pathfinder with this map
 					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
 					
 					if (toKey == null)		// This happens if we are already standing on the key
@@ -136,6 +140,7 @@ public class DijkstraExit
 				
 				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
 				{
+//					System.out.println("Removing: Too Long");
 					itr.remove();
 					continue;
 				}
@@ -148,7 +153,7 @@ public class DijkstraExit
 				}
 
 				// Get a list of all doors that we can walk to w/o going through doors
-				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap());
+				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
 				for (Space s : p.getMap().values())
 				{

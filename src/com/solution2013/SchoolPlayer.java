@@ -23,8 +23,10 @@ import com.solution2013.field.SpaceWrapper;
 public class SchoolPlayer
 {
 	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
-	
+
 	public FieldMap map = new FieldMap(LEARNING_TRACKER);
+
+	private int moves = 0;
 
 	public SchoolPlayer() throws SlickException
 	{
@@ -45,10 +47,10 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
-//		long time = System.currentTimeMillis();
+		//		long time = System.currentTimeMillis();
 		Action action = amityNextMove(vision, keyCount);
 
-//		System.out.println("TIME: "+(System.currentTimeMillis() - time));
+		//		System.out.println("TIME: "+(System.currentTimeMillis() - time));
 		switch (action)
 		// Apply the action we are about to take to the map
 		{
@@ -98,20 +100,28 @@ public class SchoolPlayer
 				return Action.Pickup;
 			}
 		}
-		
+
 		// Pickup key if we are on top of it and we are not on the way to an exit already
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key && currentStack.lastElement().getSpace().getType() != BoxType.Exit)
 		{
 			currentStack = null;
 			return Action.Pickup;
 		}
-		
+
+		moves++;
+		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)		// About to hit the exit. Save out best case so far.
+		{
+			LEARNING_TRACKER.setBestCase(moves);
+			//			System.out.println("Hit Exit");
+		}
+		//		System.out.println(currentStack.peek().getSpace().getType());
+
 		Action act = toAction(currentStack);
 		if (act != Action.Use)
 			currentStack.pop(); // pop off our last movement
 		else
 			currentStack = null; // force a recalculation next time. We just opened a door.
-		
+
 		return act;
 	}
 
@@ -124,10 +134,10 @@ public class SchoolPlayer
 	{
 		if (toExit.get(toExit.size() - 2).getSpace().getType() == BoxType.Door)		// If next space is a door, open it
 			return Action.Use;
-					
+
 		Point a = toExit.get(toExit.size() - 1).getSpace().getPoint();
 		Point b = toExit.get(toExit.size() - 2).getSpace().getPoint();
-		
+
 		if (b.y - 1 == a.y)
 			return Action.North;
 		if (b.y + 1 == a.y)
