@@ -466,6 +466,10 @@ class Space
 		this.type = type;
 	}
 
+	/**
+	 * Gets the current {@link BoxType} of this space
+	 * @return The type of space we are representing
+	 */
 	public BoxType getType()
 	{
 		return type;
@@ -1560,26 +1564,37 @@ class Path
 		}
 	}
 
+	/**
+	 * Gets the number of keys that the path has
+	 * @return The number of keys
+	 */
 	public int getKeys()
 	{
 		return keys;
 	}
 
-	public void setKeys(int keys)
-	{
-		this.keys = keys;
-	}
-
+	/**
+	 * Gets the current state of the map for the path
+	 * @return The map
+	 */
 	public HashMap<Point, Space> getMap()
 	{
 		return map;
 	}
 
+	/**
+	 * Gets the current simulation's location
+	 * @return The player's current location
+	 */
 	public Point getLocation()
 	{
 		return new Point(path.get(path.size() - 1).getSpace().getPoint());
 	}
 
+	/**
+	 * Gets the current simulation path
+	 * @return The current path
+	 */
 	public List<SpaceWrapper> getPath()
 	{
 		return path;
