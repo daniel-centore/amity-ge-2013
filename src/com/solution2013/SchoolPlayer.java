@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
-import org.newdawn.slick.SlickException;
-
 import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
@@ -21,31 +19,33 @@ import com.solution2013.Dijkstras.GetKeyException;
 
 /**
  * 
- * [To be completed by students]
+ * The Amity Regional High School Case Study Solution
  * 
- * @author Amity Region 5
+ * Algorithm Outline:
+ * - If we have never found a solution to the current map
+ * 		- Look for the closest area in the map we have never been to
+ * 		- Go to it
+ * - If we have solved it before
+ * 		- Use a mixture of brute force and dijkstra's algorithm to find the bestish solution based on all our knowledge
+ * 
+ * @author Daniel Centore
  *
  */
 public class SchoolPlayer
 {
+	// The data that we save across all runs
 	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
 
 	public FieldMap map = new FieldMap(LEARNING_TRACKER);		// The map for the current game
 	private Stack<SpaceWrapper> currentStack = null;			// The current stack of moves we're following
 	private int moves = 0;										// The number of moves we've taken so far
 
-	public SchoolPlayer() throws SlickException
-	{
-		// complete
-	}
-
 	/** 
-	 * To properly implement this class you simply must return an Action in the function nextMove below.
-	 * You are allowed to define any helper variables or methods as you see fit
-	 * For a full explanation of the variables please reference the instruction manual provided
+	 * Called by the GE code.
+	 * This just finds the action we want to take, applies it to our current map, and returns it
 	 * 
-	 * @param vision
-	 * @param keyCount
+	 * @param vision Our current {@link PlayerVision} data
+	 * @param keyCount 
 	 * @param lastAction
 	 * @return Action
 	 */
@@ -55,14 +55,16 @@ public class SchoolPlayer
 		try
 		{
 			action = amityNextMove(vision, keyCount);		// Request our next move from the program
-		} catch (Exception e)
+		} catch (Throwable t)
 		{
 			// In case something goes horribly wrong, this is better than getting disqualified.
-			e.printStackTrace();
+			t.printStackTrace();
+			
 			return Action.South;
 		}
 
-		switch (action)			// Apply the action we are about to take to the map
+		switch (action)
+		// Apply the action we are about to take to the map
 		{
 		case North:
 			map.applyMove(Direction.North);
@@ -94,6 +96,7 @@ public class SchoolPlayer
 
 	/**
 	 * Figures out the next move to take
+	 * 
 	 * @param vision The current {@link PlayerVision}
 	 * @param keyCount The number of keys we have
 	 * @return An {@link Action} to take
@@ -144,6 +147,7 @@ public class SchoolPlayer
 	/**
 	 * Finds the direction between the first two moves on the stack (ie from point a to b)
 	 * and then the appropriate action to take based on this
+	 * 
 	 * @param toExit The move list
 	 * @throws RuntimeException If the stack is bad (ie The two moves are not consecutive)
 	 * @return The action appropriate to take (either moving in a direction or opening a door)
@@ -169,8 +173,6 @@ public class SchoolPlayer
 	}
 }
 
-
-
 /**
  * The map of the current game.
  * Handles parsing vision data as well
@@ -183,7 +185,7 @@ class FieldMap
 	// Map of how much we know of the maze
 	// This map is a running map of the *current* game
 	private HashMap<Point, Space> map = new HashMap<>();
-	
+
 	// Map of the original maze
 	// As we collect data about the maze we add it here
 	// However, if we pick up a key or open a door, this new knowledge is not added
@@ -192,10 +194,10 @@ class FieldMap
 
 	// Player's current location
 	private Point location = new Point(0, 0);
-	
+
 	// The best case we have encountered for this map so far (or Integer.MAX_VALUE if it has never been solved)
 	private int bestCase;
-	
+
 	/**
 	 * Instantiates the {@link FieldMap}
 	 * @param lt The {@link LearningTracker} which keeps track of how much we know about the map already
@@ -204,10 +206,10 @@ class FieldMap
 	{
 		originalMap = lt.nextMap();
 		bestCase = lt.getBestCase();
-		
+
 		updateData(originalMap);
 	}
-	
+
 	/**
 	 * Inserts all the data from 'data' into this.map without referencing any of the original objects.
 	 * Performs a deep clone
@@ -256,7 +258,7 @@ class FieldMap
 	private void fillSurrounding(MapBox box, int x, int y)
 	{
 		BoxType type = BoxType.Open; 	// Assume it's open as we only get spaces that we can walk on
-		
+
 		if (box.hasKey()) 			// If it has a key mark it as a key
 			type = BoxType.Key;
 
@@ -273,10 +275,13 @@ class FieldMap
 	/**
 	 * If a space already exists, verify that it is correct.
 	 * If it doesn't, add it and link it to surrounding nodes.
+	 * 
 	 * @throws RuntimeException If the space already exists and the previous type contrasts with the new one
+	 * 
 	 * @param x X coordinate of the {@link Space}
 	 * @param y Y coordinate of the {@link Space}
 	 * @param type The type of space it is
+	 * 
 	 * @return The {@link Space} which either already existed in the map or which we added.
 	 */
 	private Space saveSpace(int x, int y, BoxType type)
@@ -296,10 +301,10 @@ class FieldMap
 		{
 			if (!originalMap.containsKey(p))
 				originalMap.put(p, new Space(x, y, type));		// add the space as it existed in the original map to the learned map
-			
+
 			Space sp = new Space(x, y, type);		// add space
 			map.put(p, sp);
-			
+
 			// link space to surroundings
 			Point n = new Point(x, y + 1);
 			Point s = new Point(x, y - 1);
@@ -380,7 +385,7 @@ class FieldMap
 		Point p;
 		Space sp;
 
-		// Look around us and open any doors
+		// Look around us and open any doors (there should theoretically only be 1)
 		p = new Point(location.x, location.y + 1);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
@@ -666,7 +671,7 @@ class Space
 	 * Override the hashcode and equals so that two Spaces are considered equal whenever they are located in the same position
 	 * This is to make things easier when referencing them in HashMaps and the like
 	 */
-	
+
 	@Override
 	public int hashCode()
 	{
@@ -696,8 +701,6 @@ class Space
 
 }
 
-
-
 /**
  * Uses Dijkstra's pathfinding algorithm as a basis for finding an ideal path based on our current situation
  * 
@@ -719,7 +722,7 @@ class Dijkstras
 	private Point location;						// The player's current location
 	private HashMap<Point, Space> map;			// The player's current map
 	private int bestCase;						// The best case the player has encountered in this map
-	
+
 	private Random rand = new Random();			// For making decisions between 2 seemingly identical paths
 
 	/**
@@ -729,7 +732,7 @@ class Dijkstras
 	 */
 	public Dijkstras(int keys, FieldMap map)
 	{
-		this (keys, map.getLocation(), map.getMap(), map.getBestCase());
+		this(keys, map.getLocation(), map.getMap(), map.getBestCase());
 	}
 
 	/**
@@ -762,7 +765,7 @@ class Dijkstras
 			Stack<SpaceWrapper> toExit = new DijkstraExit(keys, location, map, bestCase).toExit();
 			if (toExit != null)
 				return toExit;
-		} catch (Exception e)
+		} catch (Throwable e)
 		{
 			// If the brute force algorithm fails (unexpectedly) then fall back on this algorithm
 			e.printStackTrace();
@@ -801,7 +804,8 @@ class Dijkstras
 			if (toDoor != null)
 				possiblePaths.add(toDoor);
 		}
-		else			// We have no keys - find all key+door paths.
+		else
+		// We have no keys - find all key+door paths.
 		{
 			for (Space sp : this.getUnblockedSpaces())		// Check the map for all keys
 			{
@@ -895,9 +899,11 @@ class Dijkstras
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
 	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
+	 * 
 	 * @param start The starting {@link Point}
 	 * @param type The {@link BoxType} we are looking for. Set to null if you want unexplored or to use the {@link Space} goal instead.
 	 * @param goal The {@link Space} goal we want to go to. Set to null to use the {@link BoxType} goal.
+	 * 
 	 * @return The {@link Stack} of moves to follow. The first element will be the {@link Space} on {@link Point} and the last element is the goal.
 	 * 			This can be null if there is no possible path.
 	 */
@@ -980,6 +986,7 @@ class Dijkstras
 	/**
 	 * Find the element in the {@link SpaceWrapper} with the shortest length.
 	 * Only includes nodes still in the graph (ie those we haven't visited yet)
+	 * 
 	 * @param collection The {@link Collection} of {@link SpaceWrapper}s
 	 * @return The {@link SpaceWrapper} with the smallest value.
 	 */
@@ -1012,9 +1019,12 @@ class Dijkstras
 	/**
 	 * Wraps a {@link List} of {@link Space}s in {@link SpaceWrapper}s and spits them out as a {@link HashMap}
 	 * 	where the key is the {@link Space} and the value the {@link SpaceWrapper}.
+	 * 
 	 * This {@link HashMap} includes one Key,Value combination which are null,SpaceWrapper(space=null) to symbolize
-	 * 	an unexplored area
+	 * 	all unexplored territory
+	 * 
 	 * Sets the length of each of these to infinity (Ineteger.MAX_VALUE) except for the start node which is 0.
+	 * 
 	 * @param spaces The {@link List} of {@link Space}s
 	 * @param start	The start node whose distance we set to 0.
 	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
@@ -1059,7 +1069,6 @@ class Dijkstras
 
 }
 
-
 /**
  * Wraps a {@link Space} in a node for use in Dijkstra's algorithm.
  * This allows us to run multiple distance calculations on the same {@link Space}s without worrying about corruption
@@ -1072,7 +1081,7 @@ class SpaceWrapper
 {
 	// The previous element in the chain (or null if this is root or hasn't been set yet)
 	private SpaceWrapper previous;
-	
+
 	private int length;			// Total distance of this node from the root one
 	private Space space;		// The space we are actually referencing
 	private boolean removed;	// Set to true to signify "removal" from the graph (sometimes called "visited" in Dijkstra's)
@@ -1159,19 +1168,19 @@ class SpaceWrapper
 	}
 }
 
-
 /**
  * Looks for the shortest possible path to an exit.
  * 
  * Uses the following algorithm:
  *  1. Look for all possible paths to exits. Add them to the 'solved' list.
- *  2. Look for all possible paths to keys.
- *  3. Look for all possible paths to doors.
+ *  2. Branch for all possible paths to keys.
+ *  3. Branch for all possible paths to doors.
  *  4. Repeat until all possible key+door combinations are exhausted.
  * 
  * The algorithm uses some approximations in this "brute force" so it doesn't take days to run:
  *  - Once a door has been opened, all keys before that door are marked as nonexistant for future iterations along the path
- *  - Instead of finding all key combinations, it instead finds the shortest route to 0,1,2,...,n keys and uses each of these as a branch.
+ *  - Instead of finding *all* key combinations, it instead finds the shortest route to 0,1,2,...,n keys and uses each of these as a branch.
+ *  	This is further described within the algorithm
  * 
  * @author Daniel Centore
  *
@@ -1218,7 +1227,7 @@ class DijkstraExit
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
 		{
-			if (System.currentTimeMillis() - time > 240000)		// Timeout after 4 minutes
+			if (System.currentTimeMillis() - time > 240000)		// Timeout after 4 minutes (We're supposed to have unlimited time but this would be ridiculous)
 				break;
 
 			// PART 1: For each path, see if there is a way to get to an exit without going through doors
@@ -1309,7 +1318,7 @@ class DijkstraExit
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
-			
+
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = new ArrayList<>();
 
@@ -1325,7 +1334,7 @@ class DijkstraExit
 				}
 
 				itr.remove();		// Don't need the original path anymore. We'll either give up on it or branch from it.
-				
+
 				if (p.getKeys() == 0)
 				{
 					// We can't go to a door from this path because there are no keys left
@@ -1352,11 +1361,10 @@ class DijkstraExit
 			}
 
 			paths.addAll(tempPaths);		// To avoid ConcurrentModificationException
-			
+
 			tempPaths = new ArrayList<>();
 		}
-		
-		
+
 		// END: Find the shortest path so far
 
 		Path ideal = null;
@@ -1448,11 +1456,12 @@ class Path
 		while (!proceed.isEmpty())
 		{
 			SpaceWrapper next = proceed.pop();
-			
+
 			BoxType type = next.getSpace().getType();
 			Point p = next.getSpace().getPoint();
 
-			switch (type)		// Handle keys along the path
+			switch (type)
+			// Handle keys along the path
 			{
 			case Door:
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
@@ -1583,7 +1592,6 @@ class Path
 	}
 }
 
-
 /**
  * This class keeps track of maps as we learn them.
  * This way, we can take data we've learned in the past to help us make better decision in the future.
@@ -1596,7 +1604,7 @@ class LearningTracker
 	private int currentMap = -1;										// The current map we are playing
 	private List<HashMap<Point, Space>> maps = new ArrayList<>();		// A list of the known map for each game 
 	private List<Integer> bestCase = new ArrayList<>();					// The best move case we have encountered for each map
-	
+
 	/**
 	 * Gets the next map to use for learning.
 	 * This will be copied for 'map' in {@link FieldMap}.
@@ -1610,13 +1618,13 @@ class LearningTracker
 		{
 			currentMap = 0;
 		}
-		
+
 		if (maps.size() >= currentMap)
 			maps.add(new HashMap<Point, Space>());
-		
+
 		return maps.get(currentMap);
 	}
-	
+
 	/**
 	 * Gets the best encountered case for the current map
 	 * @return The best encountered number of moves or Integer.MAX_VALUE if we have not yet solved it
@@ -1625,10 +1633,10 @@ class LearningTracker
 	{
 		if (bestCase.size() <= currentMap)
 			bestCase.add(Integer.MAX_VALUE);
-		
+
 		return bestCase.get(currentMap);
 	}
-	
+
 	/**
 	 * Sets the best encountered case for the current map
 	 * @param i The number of moves to set it to
@@ -1637,5 +1645,4 @@ class LearningTracker
 	{
 		bestCase.set(currentMap, i);
 	}
-	
 }
