@@ -135,56 +135,100 @@ public class Space
 		this.type = type;
 	}
 
+	/**
+	 * Gets the space located north of this one
+	 * @return The space north of this one
+	 */
 	public Space getNorth()
 	{
 		return north;
 	}
 
+	/**
+	 * Sets the space located north of this one
+	 * @param north The space to set it as
+	 */
 	public void setNorth(Space north)
 	{
 		this.north = north;
 	}
 
+	/**
+	 * Gets the space located south of this one
+	 * @return The space south of this one
+	 */
 	public Space getSouth()
 	{
 		return south;
 	}
 
+	/**
+	 * Sets the space located south of this one
+	 * @param south The space to set it as
+	 */
 	public void setSouth(Space south)
 	{
 		this.south = south;
 	}
 
+	/**
+	 * Gets the space located east of this one
+	 * @return The space east of this one
+	 */
 	public Space getEast()
 	{
 		return east;
 	}
 
+	/**
+	 * Sets the space located east of this one
+	 * @param east The space to set it as
+	 */
 	public void setEast(Space east)
 	{
 		this.east = east;
 	}
 
+	/**
+	 * Gets the space located west of this one
+	 * @return The space west of this one
+	 */
 	public Space getWest()
 	{
 		return west;
 	}
 
+	/**
+	 * Sets the space located west of this one
+	 * @param west The space to set it as
+	 */
 	public void setWest(Space west)
 	{
 		this.west = west;
 	}
 
+	/**
+	 * Gets the X coordinate of the space
+	 * @return The X coordinate
+	 */
 	public int getX()
 	{
 		return x;
 	}
 
+	/**
+	 * Gets the Y coordinate of the space
+	 * @return The Y coordinate
+	 */
 	public int getY()
 	{
 		return y;
 	}
 
+	/**
+	 * Gets the position of the point as a {@link Point}
+	 * @return The position
+	 */
 	public Point getPoint()
 	{
 		return new Point(x, y);
@@ -196,6 +240,11 @@ public class Space
 		return "Space [type=" + type + ", x=" + x + ", y=" + y + "]";
 	}
 
+	/**
+	 * Override the hashcode and equals so that two Spaces are considered equal whenever they are located in the same position
+	 * This is to make things easier when referencing them in HashMaps and the like
+	 */
+	
 	@Override
 	public int hashCode()
 	{

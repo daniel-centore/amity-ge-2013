@@ -12,17 +12,23 @@ import com.solution2013.field.Space;
 import com.solution2013.field.SpaceWrapper;
 
 /**
- * Represents a path we are following
+ * Represents a path we are simulating in a brute force
  * 
  * @author Daniel Centore
  *
  */
 public class Path
 {
-	private HashMap<Point, Space> map;
-	private int keys;
-	private ArrayList<SpaceWrapper> path;		// First element is first thing to perform
+	private HashMap<Point, Space> map;			// The current state of the map in this path
+	private int keys;							// The number of keys the player has
+	private ArrayList<SpaceWrapper> path;		// The path so far. The first element is first thing to perform
 
+	/**
+	 * Creates a new Path
+	 * @param newMap The map to load (we do a deep clone of it. the original is not touched.)
+	 * @param location The player's current location
+	 * @param keys The number of keys the player has
+	 */
 	public Path(HashMap<Point, Space> newMap, Point location, int keys)
 	{
 		this.keys = keys;
@@ -33,7 +39,14 @@ public class Path
 		path = new ArrayList<>();
 		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
 	}
-	
+
+	/**
+	 * Creates a new path (for use by cloning)
+	 * @param newMap The map to clone
+	 * @param keys Number of keys the player has
+	 * @param path The path so far
+	 */
+	@SuppressWarnings("unchecked")
 	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<SpaceWrapper> path)
 	{
 		this.keys = keys;
@@ -45,43 +58,57 @@ public class Path
 		this.path = (ArrayList<SpaceWrapper>) path.clone();
 	}
 
+	@Override
 	public Path clone()
 	{
 		return new Path(this.map, this.keys, this.path);
 	}
 
+	/**
+	 * Concatenates another path onto this one
+	 * @param proceed The path to add onto it
+	 */
 	public void addToPath(Stack<SpaceWrapper> proceed)
 	{
-		if (proceed.peek().getSpace().equals(path.get(path.size() - 1).getSpace()))		// Don't put on the first element if it matches the last element of our current list
+		// Don't put on the first element of the path if it matches the last element of our current list
+		if (proceed.peek().getSpace().equals(path.get(path.size() - 1).getSpace()))
 			proceed.pop();
 
 		while (!proceed.isEmpty())
 		{
 			SpaceWrapper next = proceed.pop();
+			
 			BoxType type = next.getSpace().getType();
 			Point p = next.getSpace().getPoint();
 
-			switch (type)
+			switch (type)		// Handle keys along the path
 			{
 			case Door:
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
-				// This provides a pretty good approximation although certainly not a perfect one.
-				// TODO: If we can make DijkstraExit efficient enough, then remove this
+				// This is a pretty good approximation although not a perfect one.
+				// Without this pruning, the number of brute force paths quickly gets out of hand
 				pruneKeys();
-				
+
 				keys--;
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
 				break;
+
 			case Key:
 				keys++;
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
 				break;
+
+			default:
+				break;
 			}
-			
-			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));
+
+			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
 		}
 	}
 
+	/**
+	 * Prunes out any keys that are currently reachable
+	 */
 	private void pruneKeys()
 	{
 		Dijkstras k = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
@@ -97,7 +124,7 @@ public class Path
 				s.setType(BoxType.Open);
 			}
 		}
-		
+
 	}
 
 	/**

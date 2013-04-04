@@ -1,9 +1,7 @@
 package com.solution2013.field;
 
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
@@ -11,6 +9,13 @@ import com.csc2013.MapBox;
 import com.csc2013.PlayerVision;
 import com.solution2013.LearningTracker;
 
+/**
+ * The map of the current game.
+ * Handles parsing vision data as well
+ * 
+ * @author Daniel Centore 
+ *
+ */
 public class FieldMap
 {
 	// Map of how much we know of the maze
@@ -26,8 +31,13 @@ public class FieldMap
 	// Player's current location
 	private Point location = new Point(0, 0);
 	
+	// The best case we have encountered for this map so far (or Integer.MAX_VALUE if it has never been solved)
 	private int bestCase;
 	
+	/**
+	 * Instantiates the {@link FieldMap}
+	 * @param lt The {@link LearningTracker} which keeps track of how much we know about the map already
+	 */
 	public FieldMap(LearningTracker lt)
 	{
 		originalMap = lt.nextMap();
@@ -38,7 +48,8 @@ public class FieldMap
 	
 	/**
 	 * Inserts all the data from 'data' into this.map without referencing any of the original objects.
-	 * @param data
+	 * Performs a deep clone
+	 * @param data A map of the field
 	 */
 	private void updateData(HashMap<Point, Space> data)
 	{
@@ -82,11 +93,12 @@ public class FieldMap
 	 */
 	private void fillSurrounding(MapBox box, int x, int y)
 	{
-		BoxType type = BoxType.Open; // Assume it's open as we only get spaces that we can walk on
-		if (box.hasKey()) // If it has a key mark it as a key
+		BoxType type = BoxType.Open; 	// Assume it's open as we only get spaces that we can walk on
+		
+		if (box.hasKey()) 			// If it has a key mark it as a key
 			type = BoxType.Key;
 
-		//		System.out.println(location+" "+x+" "+y);
+		// Save the original space
 		saveSpace(x, y, type);
 
 		// Now grab the surroundings
@@ -109,11 +121,11 @@ public class FieldMap
 	{
 		Point p = new Point(x, y);
 
-		if (map.containsKey(p))
+		if (map.containsKey(p))		// If the point already exists
 		{
 			Space sp = map.get(p);
 
-			if (sp.getType() != type)
+			if (sp.getType() != type)	// The new one we want to add contrasts with the already existing one
 				throw new RuntimeException("Expected type " + sp + " at " + p.x + "," + p.y + " but asked to save " + type);
 
 			return sp;
@@ -127,7 +139,6 @@ public class FieldMap
 			map.put(p, sp);
 			
 			// link space to surroundings
-
 			Point n = new Point(x, y + 1);
 			Point s = new Point(x, y - 1);
 			Point e = new Point(x + 1, y);
@@ -207,6 +218,7 @@ public class FieldMap
 		Point p;
 		Space sp;
 
+		// Look around us and open any doors
 		p = new Point(location.x, location.y + 1);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
@@ -243,6 +255,10 @@ public class FieldMap
 		return location;
 	}
 
+	/**
+	 * Get's the best number of moves we've encountered so far for the map
+	 * @return The number of moves (or Integer.MAX_VALUE if it has never been solved)
+	 */
 	public int getBestCase()
 	{
 		return bestCase;
