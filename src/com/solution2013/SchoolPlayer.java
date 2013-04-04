@@ -59,7 +59,7 @@ public class SchoolPlayer
 		{
 			// In case something goes horribly wrong, this is better than getting disqualified.
 			t.printStackTrace();
-			
+
 			return Action.South;
 		}
 
