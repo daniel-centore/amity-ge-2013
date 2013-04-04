@@ -24,9 +24,9 @@ public class SchoolPlayer
 {
 	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
 
-	public FieldMap map = new FieldMap(LEARNING_TRACKER);
-
-	private int moves = 0;
+	public FieldMap map = new FieldMap(LEARNING_TRACKER);		// The map for the current game
+	private Stack<SpaceWrapper> currentStack = null;			// The current stack of moves we're following
+	private int moves = 0;										// The number of moves we've taken so far
 
 	public SchoolPlayer() throws SlickException
 	{
@@ -35,9 +35,7 @@ public class SchoolPlayer
 
 	/** 
 	 * To properly implement this class you simply must return an Action in the function nextMove below.
-	 * 
 	 * You are allowed to define any helper variables or methods as you see fit
-	 * 
 	 * For a full explanation of the variables please reference the instruction manual provided
 	 * 
 	 * @param vision
@@ -47,12 +45,18 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
-		//		long time = System.currentTimeMillis();
-		Action action = amityNextMove(vision, keyCount);
+		Action action = null;
+		try
+		{
+			action = amityNextMove(vision, keyCount);		// Request our next move from the program
+		} catch (Exception e)
+		{
+			// In case something goes horribly wrong, this is better than getting disqualified.
+			e.printStackTrace();
+			return Action.South;
+		}
 
-		//		System.out.println("TIME: "+(System.currentTimeMillis() - time));
-		switch (action)
-		// Apply the action we are about to take to the map
+		switch (action)			// Apply the action we are about to take to the map
 		{
 		case North:
 			map.applyMove(Direction.North);
@@ -82,53 +86,61 @@ public class SchoolPlayer
 		return action;
 	}
 
-	private Stack<SpaceWrapper> currentStack = null;
-
+	/**
+	 * Figures out the next move to take
+	 * @param vision The current {@link PlayerVision}
+	 * @param keyCount The number of keys we have
+	 * @return An {@link Action} to take
+	 */
 	public Action amityNextMove(PlayerVision vision, int keyCount)
 	{
-		int oldMapSize = map.getMap().size();
-		map.fillVision(vision);
+		int oldMapSize = map.getMap().size();	// The amount of data we knew before applying our new vision
+		map.fillVision(vision);					// Fill in what we know
 
-		if (oldMapSize < map.getMap().size() || currentStack == null || currentStack.size() < 2) // If the map changed, recalculate the best path
+		// Recalculate the best path if:
+		if (oldMapSize < map.getMap().size()		// The map changed, or
+				|| currentStack == null				// The last iteration requested a recalculation, or
+				|| currentStack.size() < 2)			// We have no moves left!
 		{
 			try
 			{
 				currentStack = new Dijkstras(keyCount, map).getNext();
 			} catch (GetKeyException e)
 			{
-				currentStack = null; // force a recalculation next time
-				return Action.Pickup;
+				// Force a recalculation next time. We do need to do this as parts of the algorithm assume a recalculation between key pickups.
+				currentStack = null;
+				return Action.Pickup;		// Pickup the key
 			}
 		}
 
-		// Pickup key if we are on top of it and we are not on the way to an exit already
-		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key && currentStack.lastElement().getSpace().getType() != BoxType.Exit)
+		// Pickup key if we are on top of it
+		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
 		{
-			currentStack = null;
+			currentStack = null;		// Force a recalculation next time
 			return Action.Pickup;
 		}
 
 		moves++;
-		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)		// About to hit the exit. Save out best case so far.
+		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)		// About to hit the exit. Save our best case so far.
 		{
 			LEARNING_TRACKER.setBestCase(moves);
-			//			System.out.println("Hit Exit");
 		}
-		//		System.out.println(currentStack.peek().getSpace().getType());
 
-		Action act = toAction(currentStack);
+		Action act = toAction(currentStack);		// Takes the next 2 positions and finds out what action is appropriate to take next
 		if (act != Action.Use)
-			currentStack.pop(); // pop off our last movement
+			currentStack.pop(); 		// Pop off our last movement
 		else
-			currentStack = null; // force a recalculation next time. We just opened a door.
+			currentStack = null;		// Force a recalculation next time. We just opened a door.
 
 		return act;
 	}
 
 	/**
 	 * Finds the direction between the first two moves on the stack (ie from point a to b)
-	 * @param toExit
-	 * @return
+	 * and then the appropriate action to take based on this
+	 * @param toExit The move list
+	 * @throws RuntimeException If the stack is bad (ie The two moves are not consecutive)
+	 * @return The action appropriate to take (either moving in a direction or opening a door)
 	 */
 	private Action toAction(Stack<SpaceWrapper> toExit)
 	{

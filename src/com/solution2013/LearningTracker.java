@@ -19,9 +19,9 @@ import com.solution2013.field.Space;
  */
 public class LearningTracker
 {
-	private int currentMap = -1;
-	private List<HashMap<Point, Space>> maps = new ArrayList<>();
-	private List<Integer> bestCase = new ArrayList<>();
+	private int currentMap = -1;										// The current map we are playing
+	private List<HashMap<Point, Space>> maps = new ArrayList<>();		// A list of the known map for each game 
+	private List<Integer> bestCase = new ArrayList<>();					// The best move case we have encountered for each map
 	
 	/**
 	 * Gets the next map to use for learning.
@@ -43,6 +43,10 @@ public class LearningTracker
 		return maps.get(currentMap);
 	}
 	
+	/**
+	 * Gets the best encountered case for the current map
+	 * @return The best encountered number of moves or Integer.MAX_VALUE if we have not yet solved it
+	 */
 	public int getBestCase()
 	{
 		if (bestCase.size() <= currentMap)
@@ -51,8 +55,13 @@ public class LearningTracker
 		return bestCase.get(currentMap);
 	}
 	
+	/**
+	 * Sets the best encountered case for the current map
+	 * @param i The number of moves to set it to
+	 */
 	public void setBestCase(int i)
 	{
 		bestCase.set(currentMap, i);
 	}
+	
 }
