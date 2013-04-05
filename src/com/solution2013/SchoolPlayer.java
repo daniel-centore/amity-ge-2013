@@ -68,8 +68,8 @@ public class SchoolPlayer
 			return Action.South;
 		}
 
+		// Apply the action we are about to take to our own map
 		switch (action)
-		// Apply the action we are about to take to the map
 		{
 		case North:
 			map.applyMove(Direction.North);
@@ -108,13 +108,8 @@ public class SchoolPlayer
 	 */
 	public Action amityNextMove(PlayerVision vision, int keyCount)
 	{
-		int oldMapSize = map.getMap().size();	// The amount of data we knew before applying our new vision
-		map.fillVision(vision);					// Fill in what we know
-
-		if (currentStack != null && currentStack.get(currentStack.size() - 1).getSpace().getX() == Integer.MAX_VALUE)
-		{
-			currentStack = null;
-		}
+		int oldMapSize = map.getMap().size();	// Calculate the amount of data we knew before applying our new vision
+		map.fillVision(vision);					// Fill in any new data we learned from the vision
 
 		// Recalculate the best path if:
 		if (oldMapSize < map.getMap().size()		// The map changed, or
@@ -123,24 +118,25 @@ public class SchoolPlayer
 		{
 			try
 			{
-				currentStack = new Dijkstras(keyCount, map).getNext();
-			} catch (GetKeyException e)
+				currentStack = new Dijkstras(keyCount, map).getNext();		// Request new move list
+			} catch (GetKeyException e)		// The algorithm requested that we pick up a key
 			{
-				// Force a recalculation next time. We do need to do this as parts of the algorithm assume a recalculation between key pickups.
-				currentStack = null;
+				currentStack = null;		// Force a recalculation next time.
 				return Action.Pickup;		// Pickup the key
 			}
 		}
 
-		// Pickup key if we are on top of it
+		// Pickup a key if we are on top of it
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
 		{
-			currentStack = null;		// Force a recalculation next time
-			return Action.Pickup;
+			currentStack = null;			// Force a recalculation next time
+			return Action.Pickup;			// Pickup the key
 		}
 
-		moves++;
-		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)		// About to hit the exit. Save our best case so far.
+		moves++;		// Keep track of how many moves we've taken
+		
+		// About to hit the exit. Save our best solved exit case time so far to improve future algorithm runtimes.
+		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)
 		{
 			LEARNING_TRACKER.setBestCase(moves);
 		}
@@ -155,8 +151,7 @@ public class SchoolPlayer
 	}
 
 	/**
-	 * Finds the direction between the first two moves on the stack (ie from point a to b)
-	 * and then the appropriate action to take based on this
+	 * Finds the direction between the next two moves on the stack and then the appropriate action to take based on this
 	 * 
 	 * @param toExit The move list
 	 * @throws RuntimeException If the stack is bad (ie The two moves are not consecutive)
@@ -217,12 +212,12 @@ class FieldMap
 		originalMap = lt.nextMap();
 		bestCase = lt.getBestCase();
 
-		updateData(originalMap);
+		updateData(originalMap);		// Deep copies how much we know about the map already
 	}
 
 	/**
 	 * Inserts all the data from 'data' into this.map without referencing any of the original objects.
-	 * Performs a deep clone
+	 * Performs a deep copy.
 	 * @param data A map of the field
 	 */
 	private void updateData(HashMap<Point, Space> data)
@@ -275,12 +270,14 @@ class FieldMap
 		// Save the original space
 		saveSpace(x, y, type);
 
-		// Now grab the surroundings
+		// Now save the surroundings
 		saveSpace(x, y + 1, box.North);
 		saveSpace(x, y - 1, box.South);
 		saveSpace(x + 1, y, box.East);
 		saveSpace(x - 1, y, box.West);
 	}
+	
+	// TODO: FINISH REFACTORING COMMENTS FROM HERE
 
 	/**
 	 * If a space already exists, verify that it is correct.
@@ -1404,7 +1401,6 @@ class BruteForcePathfinder
 				//					next = next.clone();		// Clone the new path so that it's cumulative
 				//				}
 
-
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
@@ -1451,9 +1447,9 @@ class BruteForcePathfinder
 				}
 				if (z == 0)
 				{
-//					if (p.getPath().size() > 21 && p.getPath().get(21).getSpace().getPoint().equals(new Point(-7, -6))
-//							&& (p.getPath().size() <= 36 || !p.getPath().get(36).getSpace().getPoint().equals(new Point(-4, 6))))
-//						System.out.println("B" + p.getPath());
+					//					if (p.getPath().size() > 21 && p.getPath().get(21).getSpace().getPoint().equals(new Point(-7, -6))
+					//							&& (p.getPath().size() <= 36 || !p.getPath().get(36).getSpace().getPoint().equals(new Point(-4, 6))))
+					//						System.out.println("B" + p.getPath());
 				}
 			}
 
@@ -1624,7 +1620,7 @@ class Path
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
 				// This is a pretty good approximation although not a perfect one.
 				// Without this pruning, the number of brute force paths quickly gets out of hand
-								pruneKeys();
+				pruneKeys();
 
 				keys--;
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
