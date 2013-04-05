@@ -23,7 +23,7 @@ public class Tournament {
 	 * map02.tmx
 	 * map03.tmx
 	 */
-	public final static String maps[] = {"map03.tmx"};
+	public final static String maps[] = {"map02.tmx"};
 	/*
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.
