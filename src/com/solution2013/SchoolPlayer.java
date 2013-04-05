@@ -1185,7 +1185,7 @@ class SpaceWrapper
 }
 
 /**
- * Looks for the shortest possible path to an exit.
+ * Looks for the shortest possible path to an exit.		// TODO: Not just to an exit
  * 
  * Uses the following algorithm:
  *  1. Look for all possible paths to exits. Add them to the 'solved' list.
@@ -1220,7 +1220,7 @@ class BruteForcePathfinder
 		this.currentKeys = keys;
 		this.currentLocation = currentLocation;
 		this.currentMap = currentMap;
-		this.bestCase = bestCase;		// TODO:
+		this.bestCase = bestCase;
 	}
 
 	public Stack<SpaceWrapper> toType(BoxType type)
@@ -1386,8 +1386,7 @@ class BruteForcePathfinder
 					}
 				}
 
-				// TODO: Run the for loop where the first key we check is the closest one in every direction
-
+				// The old code
 				//				for (int i = 1; i <= Math.min(keys.size(), doors); i++)
 				//				{
 				//					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
@@ -1405,7 +1404,6 @@ class BruteForcePathfinder
 				//					next = next.clone();		// Clone the new path so that it's cumulative
 				//				}
 
-				// TODO: Run the for loop where the first key we check is the closest one in every direction
 
 			}
 
