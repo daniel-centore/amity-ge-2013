@@ -113,7 +113,6 @@ public class SchoolPlayer
 
 		if (currentStack != null && currentStack.get(currentStack.size() - 1).getSpace().getX() == Integer.MAX_VALUE)
 		{
-			System.out.println("FORCE RECALCULATION");
 			currentStack = null;
 		}
 
@@ -1269,7 +1268,6 @@ class BruteForcePathfinder
 			List<Path> tempPaths = new ArrayList<>();
 
 			itr = paths.iterator();
-			System.out.println("=============");
 			while (itr.hasNext())
 			{
 				Path p = itr.next();
@@ -1455,9 +1453,9 @@ class BruteForcePathfinder
 				}
 				if (z == 0)
 				{
-					if (p.getPath().size() > 21 && p.getPath().get(21).getSpace().getPoint().equals(new Point(-7, -6))
-							&& (p.getPath().size() <= 36 || !p.getPath().get(36).getSpace().getPoint().equals(new Point(-4, 6))))
-						System.out.println("B" + p.getPath());
+//					if (p.getPath().size() > 21 && p.getPath().get(21).getSpace().getPoint().equals(new Point(-7, -6))
+//							&& (p.getPath().size() <= 36 || !p.getPath().get(36).getSpace().getPoint().equals(new Point(-4, 6))))
+//						System.out.println("B" + p.getPath());
 				}
 			}
 
@@ -1628,7 +1626,7 @@ class Path
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
 				// This is a pretty good approximation although not a perfect one.
 				// Without this pruning, the number of brute force paths quickly gets out of hand
-				//				pruneKeys();
+								pruneKeys();
 
 				keys--;
 				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
