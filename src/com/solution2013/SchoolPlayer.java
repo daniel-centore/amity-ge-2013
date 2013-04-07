@@ -277,8 +277,6 @@ class FieldMap
 		saveSpace(x - 1, y, box.West);
 	}
 	
-	// TODO: FINISH REFACTORING COMMENTS FROM HERE
-
 	/**
 	 * If a space already exists, verify that it is correct.
 	 * If it doesn't, add it and link it to surrounding nodes.
@@ -306,13 +304,13 @@ class FieldMap
 		}
 		else
 		{
-			if (!originalMap.containsKey(p))
-				originalMap.put(p, new Space(x, y, type));		// add the space as it existed in the original map to the learned map
+			if (!originalMap.containsKey(p))		// add the space as it existed in the original map to the learned map
+				originalMap.put(p, new Space(x, y, type));
 
-			Space sp = new Space(x, y, type);		// add space
+			Space sp = new Space(x, y, type);		// add the new space
 			map.put(p, sp);
 
-			// link space to surroundings
+			// link the space to its surroundings
 			Point n = new Point(x, y + 1);
 			Point s = new Point(x, y - 1);
 			Point e = new Point(x + 1, y);
@@ -351,7 +349,7 @@ class FieldMap
 	}
 
 	/**
-	 * Let's the map know that we moved in a direction
+	 * Lets the map know that we moved in a direction and updates the location accordingly 
 	 * @param dir The {@link Direction} we moved in
 	 */
 	public void applyMove(Direction dir)
@@ -377,7 +375,7 @@ class FieldMap
 	}
 
 	/**
-	 * Let's the map know we just picked up a key on the space we're on.
+	 * Lets the map know we just picked up a key on the space we're on.
 	 */
 	public void applyPickupKey()
 	{
@@ -385,7 +383,7 @@ class FieldMap
 	}
 
 	/**
-	 * Let's the map know we just opened a door.
+	 * Lets the map know we just opened a door.
 	 */
 	public void applyOpenDoor()
 	{
@@ -430,7 +428,8 @@ class FieldMap
 	}
 
 	/**
-	 * Get's the best number of moves we've encountered so far for the map
+	 * Get's the best number of moves we've encountered so far for the map.
+	 * Be careful because since this can be Integer.MAX_VALUE you need to watch out for overflow
 	 * @return The number of moves (or Integer.MAX_VALUE if it has never been solved)
 	 */
 	public int getBestCase()
@@ -440,8 +439,10 @@ class FieldMap
 
 }
 
+// TODO: Comment from here
+
 /**
- * A single space on the board
+ * Represents a single space on the board
  * 
  * @author Daniel Centore
  *
