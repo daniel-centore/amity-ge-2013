@@ -1449,16 +1449,17 @@ class Path
 		{
 			SpaceWrapper next = proceed.pop();
 
-			if (next.getSpace() == null)
+			if (next.getSpace() == null)		// Do not include walking to unknown in the path
 			{
 				break;
 			}
-			// Set the type and location. If the space is null (representing unknown territory) then set them to placeholders.
+			
+			// Set the type and location.
 			BoxType type = next.getSpace().getType();
 			Point p = next.getSpace().getPoint();
 
+			// Handle key usage along the path
 			switch (type)
-			// Handle keys along the path
 			{
 			case Door:
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
@@ -1495,10 +1496,10 @@ class Path
 			if (s.getType() == BoxType.Key)
 			{
 				Stack<SpaceWrapper> toKey = k.shortestToType(this.getLocation(), s);
-				if (toKey == null)
+				if (toKey == null)		// If we cannot get to the key, continue
 					continue;
 
-				s.setType(BoxType.Open);
+				s.setType(BoxType.Open);		// Mark it as open (even though it's not!)
 			}
 		}
 
@@ -1506,11 +1507,11 @@ class Path
 
 	/**
 	 * Clones the newMap
-	 * @param newMap
+	 * @param newMap The map to clone
 	 */
 	private void load(HashMap<Point, Space> newMap)
 	{
-		for (Space me : newMap.values())
+		for (Space me : newMap.values())		// For all the spaces in the map
 		{
 			Point p = me.getPoint();
 
