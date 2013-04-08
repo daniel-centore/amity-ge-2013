@@ -134,7 +134,7 @@ public class SchoolPlayer
 		}
 
 		moves++;		// Keep track of how many moves we've taken
-		
+
 		// About to hit the exit. Save our best solved exit case time so far to improve future algorithm runtimes.
 		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)
 		{
@@ -276,7 +276,7 @@ class FieldMap
 		saveSpace(x + 1, y, box.East);
 		saveSpace(x - 1, y, box.West);
 	}
-	
+
 	/**
 	 * If a space already exists, verify that it is correct.
 	 * If it doesn't, add it and link it to surrounding nodes.
@@ -439,8 +439,6 @@ class FieldMap
 
 }
 
-// TODO: Comment from here
-
 /**
  * Represents a single space on the board
  * 
@@ -505,15 +503,8 @@ class Space
 				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
 
 		case Key:
-			return 1;
-
 		case Exit:
 		case Open:
-			if (keys == 0) // Prefer paths with keys if we have none
-				return 5;
-			if (keys == 1)
-				return 2;
-
 			return 1;
 		}
 
@@ -532,34 +523,17 @@ class Space
 	{
 		ArrayList<Space> result = new ArrayList<>(4);
 
-		//		if (type == BoxType.Door) // If we are a door, we do not have direct access to the unknown (null) areas.
-		//		{
-		//			if (north != null && north.type != BoxType.Blocked)
-		//				result.add(north);
-		//
-		//			if (south != null && south.type != BoxType.Blocked)
-		//				result.add(south);
-		//
-		//			if (east != null && east.type != BoxType.Blocked)
-		//				result.add(east);
-		//
-		//			if (west != null && west.type != BoxType.Blocked)
-		//				result.add(west);
-		//		}
-		//		else
-		{
-			if (north == null || north.type != BoxType.Blocked)
-				result.add(north);
+		if (north == null || north.type != BoxType.Blocked)
+			result.add(north);
 
-			if (south == null || south.type != BoxType.Blocked)
-				result.add(south);
+		if (south == null || south.type != BoxType.Blocked)
+			result.add(south);
 
-			if (east == null || east.type != BoxType.Blocked)
-				result.add(east);
+		if (east == null || east.type != BoxType.Blocked)
+			result.add(east);
 
-			if (west == null || west.type != BoxType.Blocked)
-				result.add(west);
-		}
+		if (west == null || west.type != BoxType.Blocked)
+			result.add(west);
 
 		return result;
 	}
@@ -714,7 +688,8 @@ class Space
 }
 
 /**
- * Uses Dijkstra's pathfinding algorithm as a basis for finding an ideal path based on our current situation
+ * Uses Dijkstra's pathfinding algorithm to find the shortest route between 2 nodes.
+ * This class also handles finding the next path to take.
  * 
  * @author Daniel Centore
  *
@@ -763,7 +738,7 @@ class Dijkstras
 	}
 
 	/**
-	 * Figures out which path to take next. This algorithm is really the "guts" of this program.
+	 * Figures out which path to take next.
 	 * @return A {@link Stack} which gives you the moves you should take in order.
 	 * 			The first and last elements are where you are and where you want to be, respectively. 
 	 * @throws GetKeyException If we want you to pick up a key instead of following a path
@@ -809,65 +784,13 @@ class Dijkstras
 		if (toUnknown != null)
 			possiblePaths.add(toUnknown);
 
-		//		System.out.println(toUnknown);
-
-		// Add the shortest path to unexplored through a door
-		//		if (keys > 0) 	// Just go straight to the door. We already have a key.
-		//		{
-		//			Stack<SpaceWrapper> toDoor = shortestToType(location, BoxType.Door);
-		//			if (toDoor != null)
-		//				possiblePaths.add(toDoor);
-		//		}
-		//		else
-		//		// We have no keys - find all key+door paths.
-		//		{
-		//			for (Space sp : this.getUnblockedSpaces())		// Check the map for all keys
-		//			{
-		//				if (sp.getType() == BoxType.Key)
-		//				{
-		//					// Find a path to the key
-		//					Stack<SpaceWrapper> toKey = shortestToType(location, sp);
-		//
-		//					if (toKey == null) 			// This key is impossible to get to right now. Try another key.
-		//						continue;
-		//
-		//					// Find a path from the key to the closest door
-		//					Stack<SpaceWrapper> toDoor = shortestToType(toKey.firstElement().getSpace().getPoint(), BoxType.Door);
-		//
-		//					if (toDoor == null) 		// There are no known doors. Just quit the whole key+door search.
-		//						break;
-		//
-		//					// Combine the key+door stacks
-		//
-		//					toDoor.pop(); // Pop the first item off the door stack because otherwise it will be repeated
-		//
-		//					// Put them on a temporary stack
-		//					Stack<SpaceWrapper> temp = new Stack<>();
-		//
-		//					while (!toKey.isEmpty())
-		//						temp.push(toKey.pop());
-		//
-		//					while (!toDoor.isEmpty())
-		//						temp.push(toDoor.pop());
-		//
-		//					Stack<SpaceWrapper> toKeyToDoor = new Stack<>();
-		//
-		//					// Reverse the elements because they're backward right now
-		//					while (!temp.isEmpty())
-		//						toKeyToDoor.push(temp.pop());
-		//
-		//					possiblePaths.add(toKeyToDoor);
-		//				}
-		//			}
-		//		}
-
 		// Find the shortest path to the unexplored areas now
 
 		Stack<SpaceWrapper> min;
 		Iterator<Stack<SpaceWrapper>> itr = possiblePaths.iterator();
 		if (!itr.hasNext())
 		{
-			String s = "This map is impossible to solve in the current state.\n" +
+			String s = "This map is seemingly impossible to solve in the current state.\n" +
 					"We've explored all unexplored areas and used all available key+door combinations.\n" +
 					"This usually means the map has some sort of flaw in it which permits one to use\n" +
 					"all of the map's keys but still have some doors locked.";
@@ -1013,7 +936,7 @@ class Dijkstras
 		{
 			SpaceWrapper next = itr.next();
 
-			if (!next.isRemoved())
+			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
 					shortest = next;
@@ -1183,10 +1106,11 @@ class SpaceWrapper
 }
 
 /**
- * Looks for the shortest possible path to an exit.		// TODO: Not just to an exit
+ * Looks for the shortest possible path to a type.
+ * This uses a combination of brute forcing and dijkstras algorithm to find the ideal path including door+key combinations.
  * 
  * Uses the following algorithm:
- *  1. Look for all possible paths to exits. Add them to the 'solved' list.
+ *  1. Look for all possible paths to the type. Add them to the 'solved' list.
  *  2. Branch for all possible paths to keys.
  *  3. Branch for all possible paths to doors.
  *  4. Repeat until all possible key+door combinations are exhausted.
@@ -1221,9 +1145,13 @@ class BruteForcePathfinder
 		this.bestCase = bestCase;
 	}
 
+	/**
+	 * Finds the shortest path to a {@link BoxType} using the algorithm outlined in the class javadoc
+	 * @param type The {@link BoxType} to look for (you can also use null to indicate an unexplored area)
+	 * @return
+	 */
 	public Stack<SpaceWrapper> toType(BoxType type)
 	{
-
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
 
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
@@ -1232,15 +1160,10 @@ class BruteForcePathfinder
 
 		int shortest = bestCase;
 
-		long time = System.currentTimeMillis();
-
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
 		{
-			if (System.currentTimeMillis() - time > 240000)		// Timeout after 4 minutes (We're supposed to have unlimited time but this would be ridiculous)
-				break;
-
-			// PART 1: For each path, see if there is a way to get to an exit without going through doors
+			// PART 1: For each path, see if there is a way to get to the goal without going through doors
 			// If there is, add the path to the solved list.
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())
@@ -1249,7 +1172,7 @@ class BruteForcePathfinder
 
 				Dijkstras d = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
-				Stack<SpaceWrapper> toExit = d.shortestToType(p.getLocation(), type);//BoxType.Exit);		// Find shortest path to an exit
+				Stack<SpaceWrapper> toExit = d.shortestToType(p.getLocation(), type);		// Find shortest path to an exit
 				if (toExit != null)			// There is such a path
 				{
 					p = p.clone();
@@ -1261,7 +1184,7 @@ class BruteForcePathfinder
 				}
 			}
 
-			// PART 2: For each path, find all possible paths to keys
+			// PART 2: For each path, find all possible reasonable paths to keys
 
 			List<Path> tempPaths = new ArrayList<>();
 
@@ -1279,6 +1202,7 @@ class BruteForcePathfinder
 				// Get a list of all keys that we can walk to without going through doors
 				Queue<Space> keys = new LinkedList<>();		// The list of keys
 				Path temp = p.clone();
+				
 				Dijkstras k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
 				while (true)
 				{
@@ -1292,15 +1216,10 @@ class BruteForcePathfinder
 					}
 				}
 
+				// Copy the queue so we can poll from one and then access the data later 
 				Queue<Space> keysCopy = new LinkedList<>();
 				for (Space key : keys)
 					keysCopy.add(key);
-				//				for (Space s : p.getMap().values())
-				//				{
-				//					// If it is a keys that we can get to, add it
-				//					if (s.getType() == BoxType.Key && k.shortestToType(p.getLocation(), s) != null)
-				//						keys.add(s);
-				//				}
 
 				if (keys.size() == 0 && p.getKeys() == 0)		// There are no more keys to get and we're out of keys. Kill the potential path.
 				{
@@ -1316,23 +1235,24 @@ class BruteForcePathfinder
 						doors++;
 				}
 
-				// Find out which keys are the closest in each direction
-				//k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
+				// Generate a list of keys in each direction
+				// This generates a list of lists such that the first list contains all keys in order of increasing distance in one
+				// direction, the second list contains all keys in another direction, and so on and so forth.
 				List<List<Space>> keyLists = new ArrayList<>();
 
 				while (!keysCopy.isEmpty())
 				{
 					List<Space> curr = new ArrayList<>();
 					temp = p.clone();
-					k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
+					k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);		// create a new path
 
-					Space key = keysCopy.poll();
+					Space key = keysCopy.poll();	// Get the next key
 
-					temp.addToPath(k.shortestToType(temp.getLocation(), key));
+					temp.addToPath(k.shortestToType(temp.getLocation(), key));		// Add it to the path
 
-					curr.add(key);
+					curr.add(key);		// Add it to the current direction list
 
-					Iterator<Space> spi = keysCopy.iterator();
+					Iterator<Space> spi = keysCopy.iterator();		// iterate through the remaining keys
 					while (spi.hasNext())
 					{
 						key = spi.next();
@@ -1340,16 +1260,17 @@ class BruteForcePathfinder
 						Stack<SpaceWrapper> original = k.shortestToType(p.getLocation(), key);
 						Stack<SpaceWrapper> after = k.shortestToType(temp.getLocation(), key);
 
-						if (after.size() < original.size())
+						if (after.size() < original.size())		// If we got closer to the key by taking the path
 						{
-							curr.add(key);
-							spi.remove();
+							curr.add(key);		// Add it to the current direction list
+							spi.remove();		// Remove it from future iterations
 						}
 					}
 
-					keyLists.add(curr);
+					keyLists.add(curr);		// Add the current direction to the list of directions
 				}
 
+				// Iterates through each of the directions and then finds the possible paths in each of those directions
 				for (List<Space> list : keyLists)
 				{
 					Path next = p.clone();
@@ -1362,15 +1283,15 @@ class BruteForcePathfinder
 					//  4. Going to the closest key, then the next closest, then the next closest after that
 					// Doesn't look for more keys than there are doors
 					int i = 0;
-					for (Space s : list)
+					for (Space s : list)		// Go through all spaces in the current direction list
 					{
 						i++;
-						if (i > doors)
+						if (i > doors)		// If we are on more keys than there are doors, scrap the paths
 							break;
 
 						k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
 
-						Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), s);
+						Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), s);	// Find the path to the key
 
 						if (toKey == null)		// This happens if we are already standing on the key
 						{
@@ -1380,28 +1301,9 @@ class BruteForcePathfinder
 						next.addToPath(toKey);		// Add the part to the path
 						tempPaths.add(next);		// Add the path to the list of paths
 
-						next = next.clone();
+						next = next.clone();		// Clone the Path for the next key iteration
 					}
 				}
-
-				// The old code
-				//				for (int i = 1; i <= Math.min(keys.size(), doors); i++)
-				//				{
-				//					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
-				//					// Find the shortest path to the list
-				//					Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), BoxType.Key);
-				//
-				//					if (toKey == null)		// This happens if we are already standing on the key
-				//					{
-				//						continue;
-				//					}
-				//
-				//					next.addToPath(toKey);		// Add the part to the path
-				//					tempPaths.add(next);		// Add the path to the list of paths
-				//
-				//					next = next.clone();		// Clone the new path so that it's cumulative
-				//				}
-
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
@@ -1431,26 +1333,19 @@ class BruteForcePathfinder
 				// Get a list of all doors that we can walk to without going through other doors
 				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
-				int z = 0;
 				for (Space s : p.getMap().values())
 				{
 					if (s.getType() == BoxType.Door)
 					{
 						Stack<SpaceWrapper> toDoor = k.shortestToType(p.getLocation(), s);
-						if (toDoor == null)		// No possible path to that door
+						if (toDoor == null)			// No possible path to that door
 							continue;
-						z++;
+
 						Path next = p.clone();		// Clone the original path
 
 						next.addToPath(toDoor);		// Add the path to the door to it
 						tempPaths.add(next);		// Add it to the list of paths
 					}
-				}
-				if (z == 0)
-				{
-					//					if (p.getPath().size() > 21 && p.getPath().get(21).getSpace().getPoint().equals(new Point(-7, -6))
-					//							&& (p.getPath().size() <= 36 || !p.getPath().get(36).getSpace().getPoint().equals(new Point(-4, 6))))
-					//						System.out.println("B" + p.getPath());
 				}
 			}
 
@@ -1461,40 +1356,17 @@ class BruteForcePathfinder
 
 		// END: Find the shortest path so far
 
-		PrintWriter out = null;
-		try
-		{
-			out = new PrintWriter(new FileWriter("./output.txt"));
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-
 		Path ideal = null;
 		for (Path s : solved)
 		{
-			for (SpaceWrapper k : s.getPath())
-			{
-				if (k.getSpace().getPoint().equals(new Point(12, -4)))
-				{
-					out.println(s.getPath().size());
-					out.println(s);
-					break;
-				}
-			}
 			if (ideal == null || s.getPath().size() < ideal.getPath().size())
 				ideal = s;
 		}
 
 		if (ideal == null)		// No known path exits
 		{
-			out.close();
 			return null;
 		}
-
-		out.println(ideal.getPath().size());
-
-		out.close();
 
 		// A path does exist - Put it on a stack in the format we like
 		List<SpaceWrapper> l = ideal.getPath();
@@ -1532,7 +1404,7 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load(newMap);
+		load(newMap);			// Clone the map
 
 		path = new ArrayList<>();
 		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
@@ -1552,7 +1424,6 @@ class Path
 		map = new HashMap<>();
 		load(newMap);
 
-		this.path = new ArrayList<>();
 		this.path = (ArrayList<SpaceWrapper>) path.clone();
 	}
 
