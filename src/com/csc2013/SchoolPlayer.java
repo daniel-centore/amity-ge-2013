@@ -50,6 +50,9 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
+		if (!lastAction)			// We failed last time, so let's not further destroy the map
+			return Action.South;
+		
 		Action action = null;
 		try
 		{
@@ -123,7 +126,6 @@ public class SchoolPlayer
 		// Pickup a key if we are on top of it
 		if (map.getMap().get(map.getLocation()).getType() == BoxType.Key)
 		{
-			currentStack = null;			// Force a recalculation next time
 			return Action.Pickup;			// Pickup the key
 		}
 
@@ -139,7 +141,7 @@ public class SchoolPlayer
 		if (act != Action.Use)
 			currentStack.pop(); 		// Pop off our last movement
 		else
-			currentStack = null;		// Force a recalculation next time. We just opened a door.
+			currentStack.get(currentStack.size() - 2).getSpace().setType(BoxType.Open);		// The door is now open. Mark it as such and we'll walk to it next move.
 
 		return act;
 	}
@@ -1301,7 +1303,7 @@ class BruteForcePathfinder
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
-
+			
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = new ArrayList<>();
 
@@ -1334,7 +1336,7 @@ class BruteForcePathfinder
 						Stack<SpaceWrapper> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)			// No possible path to that door
 							continue;
-
+						
 						Path next = p.clone();		// Clone the original path
 
 						next.addToPath(toDoor);		// Add the path to the door to it
@@ -1347,7 +1349,7 @@ class BruteForcePathfinder
 
 			tempPaths = new ArrayList<>();
 		}
-
+		
 		// END: Find the shortest path so far
 
 		Path ideal = null;
