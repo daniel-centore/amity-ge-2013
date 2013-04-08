@@ -1,9 +1,6 @@
 package com.solution2013;
 
 import java.awt.Point;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
