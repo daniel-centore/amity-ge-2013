@@ -1422,9 +1422,9 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load(newMap);
+		load(newMap);			// clone the map
 
-		this.path = (ArrayList<SpaceWrapper>) path.clone();
+		this.path = (ArrayList<SpaceWrapper>) path.clone();		// clone the old path
 	}
 
 	@Override
@@ -1433,39 +1433,11 @@ class Path
 		return new Path(this.map, this.keys, this.path);
 	}
 
-	public void obliteratePath(Stack<SpaceWrapper> proceed)
-	{
-		while (!proceed.isEmpty())
-		{
-			SpaceWrapper next = proceed.pop();
-
-			if (next.getSpace() == null)
-			{
-				break;
-			}
-			BoxType type = next.getSpace().getType();
-			Point p = next.getSpace().getPoint();
-
-			switch (type)
-			// Handle keys along the path
-			{
-			case Key:
-				//				keys++;
-				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
-				break;
-
-			default:
-				break;
-			}
-
-			//			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
-		}
-	}
-
 	/**
 	 * Concatenates another path onto this one
 	 * @param proceed The path to add onto it
 	 */
+	@SuppressWarnings("unchecked")
 	public void addToPath(Stack<SpaceWrapper> proceed)
 	{
 		proceed = (Stack<SpaceWrapper>) proceed.clone();
