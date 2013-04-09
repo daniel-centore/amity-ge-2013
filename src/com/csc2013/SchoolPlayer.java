@@ -52,7 +52,7 @@ public class SchoolPlayer
 	{
 		if (!lastAction)			// We failed last time, so let's not further destroy the map
 			return Action.South;
-		
+
 		Action action = null;
 		try
 		{
@@ -745,9 +745,24 @@ class Dijkstras
 		// This uses a brute force to try to find the very most ideal path
 		try
 		{
-			Stack<SpaceWrapper> toExit = new BruteForcePathfinder(keys, location, map, bestCase).toType(BoxType.Exit);
-			if (toExit != null)
-				return toExit;
+			boolean hasExit = false;
+
+			for (Space s : map.values())
+			{
+				if (s.getType() == BoxType.Exit)
+				{
+					hasExit = true;
+					break;
+				}
+			}
+
+			if (hasExit)
+			{
+
+				Stack<SpaceWrapper> toExit = new BruteForcePathfinder(keys, location, map, bestCase).toType(BoxType.Exit);
+				if (toExit != null)
+					return toExit;
+			}
 		} catch (Throwable e)
 		{
 			// If the brute force algorithm fails (unexpectedly) then fall back on this algorithm
@@ -1180,6 +1195,8 @@ class BruteForcePathfinder
 				}
 			}
 
+			System.out.println(solved.size() + " " + shortest);
+
 			// PART 2: For each path, find all possible reasonable paths to keys
 
 			List<Path> tempPaths = new ArrayList<>();
@@ -1198,7 +1215,7 @@ class BruteForcePathfinder
 				// Get a list of all keys that we can walk to without going through doors
 				Queue<Space> keys = new LinkedList<>();		// The list of keys
 				Path temp = p.clone();
-				
+
 				Dijkstras k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
 				while (true)
 				{
@@ -1282,7 +1299,7 @@ class BruteForcePathfinder
 					for (Space s : list)		// Go through all spaces in the current direction list
 					{
 						i++;
-						if (i > doors)		// If we are on more keys than there are doors, scrap the paths
+						if (i > doors - next.getKeys())		// If we are on more keys than there are doors, scrap the paths
 							break;
 
 						k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
@@ -1303,7 +1320,7 @@ class BruteForcePathfinder
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
-			
+
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = new ArrayList<>();
 
@@ -1336,7 +1353,7 @@ class BruteForcePathfinder
 						Stack<SpaceWrapper> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)			// No possible path to that door
 							continue;
-						
+
 						Path next = p.clone();		// Clone the original path
 
 						next.addToPath(toDoor);		// Add the path to the door to it
@@ -1349,7 +1366,7 @@ class BruteForcePathfinder
 
 			tempPaths = new ArrayList<>();
 		}
-		
+
 		// END: Find the shortest path so far
 
 		Path ideal = null;
@@ -1449,7 +1466,7 @@ class Path
 			{
 				break;
 			}
-			
+
 			// Set the type and location.
 			BoxType type = next.getSpace().getType();
 			Point p = next.getSpace().getPoint();
