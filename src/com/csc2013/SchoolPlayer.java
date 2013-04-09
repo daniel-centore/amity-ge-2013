@@ -1437,7 +1437,7 @@ class Path
 		map = new HashMap<>();
 		load(newMap);			// clone the map
 
-		this.path = (ArrayList<SpaceWrapper>) path.clone();		// clone the old path
+		this.path = (ArrayList<SpaceWrapper>) path.clone();		// clone the old path		// TODO: Instead of cloning the last path, instead link to it like a LinkedList
 	}
 
 	@Override
