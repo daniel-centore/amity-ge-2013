@@ -92,6 +92,8 @@ public class SchoolPlayer
 			map.applyOpenDoor();
 			break;
 		}
+		
+		System.out.println(action);
 
 		return action;
 	}
@@ -312,34 +314,6 @@ class FieldMap
 			Point e = new Point(x + 1, y);
 			Point w = new Point(x - 1, y);
 
-			if (map.containsKey(n))
-			{
-				Space temp = map.get(n);
-				sp.setNorth(temp);
-				temp.setSouth(sp);
-			}
-
-			if (map.containsKey(s))
-			{
-				Space temp = map.get(s);
-				sp.setSouth(temp);
-				temp.setNorth(sp);
-			}
-
-			if (map.containsKey(e))
-			{
-				Space temp = map.get(e);
-				sp.setEast(temp);
-				temp.setWest(sp);
-			}
-
-			if (map.containsKey(w))
-			{
-				Space temp = map.get(w);
-				sp.setWest(temp);
-				temp.setEast(sp);
-			}
-
 			return sp;
 		}
 	}
@@ -445,12 +419,6 @@ class Space
 {
 	private BoxType type; // type of space we are
 
-	// What space lies in each of the 4 cardinal directions. Null indicates unknown.
-	private Space north = null;
-	private Space south = null;
-	private Space east = null;
-	private Space west = null;
-
 	// The (x,y) coordinate of this space
 	private final int x;
 	private final int y;
@@ -507,32 +475,6 @@ class Space
 		throw new RuntimeException("This should not be possible");
 	}
 
-	/**
-	 * Gets a list of surrounding nodes.
-	 * This includes null (unknown) spaces as long as this {@link Space} is not a door.
-	 * This does NOT include walls.
-	 * This is because a Door does not have direct access to the unknown areas so we don't want to include that
-	 * 	in our calculations.
-	 * @return A {@link List} of surrounding spaces.
-	 */
-	public List<Space> getSurrounding()
-	{
-		ArrayList<Space> result = new ArrayList<>(4);
-
-		if (north == null || north.type != BoxType.Blocked)
-			result.add(north);
-
-		if (south == null || south.type != BoxType.Blocked)
-			result.add(south);
-
-		if (east == null || east.type != BoxType.Blocked)
-			result.add(east);
-
-		if (west == null || west.type != BoxType.Blocked)
-			result.add(west);
-
-		return result;
-	}
 
 	/**
 	 * Sets the type of this space.
@@ -544,77 +486,6 @@ class Space
 		this.type = type;
 	}
 
-	/**
-	 * Gets the space located north of this one
-	 * @return The space north of this one
-	 */
-	public Space getNorth()
-	{
-		return north;
-	}
-
-	/**
-	 * Sets the space located north of this one
-	 * @param north The space to set it as
-	 */
-	public void setNorth(Space north)
-	{
-		this.north = north;
-	}
-
-	/**
-	 * Gets the space located south of this one
-	 * @return The space south of this one
-	 */
-	public Space getSouth()
-	{
-		return south;
-	}
-
-	/**
-	 * Sets the space located south of this one
-	 * @param south The space to set it as
-	 */
-	public void setSouth(Space south)
-	{
-		this.south = south;
-	}
-
-	/**
-	 * Gets the space located east of this one
-	 * @return The space east of this one
-	 */
-	public Space getEast()
-	{
-		return east;
-	}
-
-	/**
-	 * Sets the space located east of this one
-	 * @param east The space to set it as
-	 */
-	public void setEast(Space east)
-	{
-		this.east = east;
-	}
-
-	/**
-	 * Gets the space located west of this one
-	 * @return The space west of this one
-	 */
-	public Space getWest()
-	{
-		return west;
-	}
-
-	/**
-	 * Sets the space located west of this one
-	 * @param west The space to set it as
-	 */
-	public void setWest(Space west)
-	{
-		this.west = west;
-	}
 
 	/**
 	 * Gets the X coordinate of the space
@@ -904,7 +775,7 @@ class Dijkstras
 			if (min.getSpace() != null)
 			{
 				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
-				for (Space sp : min.getSpace().getSurrounding())
+				for (Space sp : MapUtils.findSurroundingSpaces(map, min.getSpace()))//min.getSpace().getSurrounding())
 				{
 					if (sp == null && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
 						continue;
@@ -1402,6 +1273,8 @@ class BruteForcePathfinder
  */
 class Path
 {
+	 private static final MemoryCounter mc = new MemoryCounter();
+	 
 	private HashMap<Point, Space> map;			// The current state of the map in this path
 	private int keys;							// The number of keys the player has
 	private ArrayList<SpaceWrapper> path;		// The path so far. The first element is first thing to perform
@@ -1435,9 +1308,17 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load(newMap);			// clone the map
+		load2(newMap);
+//		load(newMap);			// clone the map
 
 		this.path = (ArrayList<SpaceWrapper>) path.clone();		// clone the old path		// TODO: Instead of cloning the last path, instead link to it like a LinkedList
+		
+	}
+
+	private void load2(HashMap<Point, Space> newMap)
+	{
+		for (Space sp : newMap.values())
+			map.put(sp.getPoint(), sp);
 	}
 
 	@Override
@@ -1481,12 +1362,14 @@ class Path
 				pruneKeys();
 
 				keys--;
-				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
+//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
+				cloneSpace(next.getSpace()).setType(BoxType.Open);
 				break;
 
 			case Key:
 				keys++;
-				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
+//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
+				cloneSpace(next.getSpace()).setType(BoxType.Open);
 				break;
 
 			default:
@@ -1512,10 +1395,31 @@ class Path
 				if (toKey == null)		// If we cannot get to the key, continue
 					continue;
 
-				s.setType(BoxType.Open);		// Mark it as open (even though it's not!)
+				cloneSpace(s).setType(BoxType.Open);		// Mark it as open (even though it's not!)
 			}
 		}
 
+	}
+	
+	private Space cloneSpace(Space me)
+	{
+		Point p = me.getPoint();
+
+		int x = me.getX();
+		int y = me.getY();
+
+		Space sp = new Space(me.getX(), me.getY(), me.getType());		// add space
+		map.put(p, sp);
+
+		// link space to surroundings
+
+		Point n = new Point(x, y + 1);
+		Point s = new Point(x, y - 1);
+		Point e = new Point(x + 1, y);
+		Point w = new Point(x - 1, y);
+
+		
+		return sp;
 	}
 
 	/**
@@ -1536,38 +1440,6 @@ class Path
 
 			// link space to surroundings
 
-			Point n = new Point(x, y + 1);
-			Point s = new Point(x, y - 1);
-			Point e = new Point(x + 1, y);
-			Point w = new Point(x - 1, y);
-
-			if (map.containsKey(n))
-			{
-				Space temp = map.get(n);
-				sp.setNorth(temp);
-				temp.setSouth(sp);
-			}
-
-			if (map.containsKey(s))
-			{
-				Space temp = map.get(s);
-				sp.setSouth(temp);
-				temp.setNorth(sp);
-			}
-
-			if (map.containsKey(e))
-			{
-				Space temp = map.get(e);
-				sp.setEast(temp);
-				temp.setWest(sp);
-			}
-
-			if (map.containsKey(w))
-			{
-				Space temp = map.get(w);
-				sp.setWest(temp);
-				temp.setEast(sp);
-			}
 		}
 	}
 
@@ -1666,5 +1538,66 @@ class LearningTracker
 	public void setBestCase(int i)
 	{
 		bestCase.set(currentMap, i);
+	}
+}
+
+
+class MapUtils
+{
+	public static List<Space> findSurroundingSpaces(HashMap<Point, Space> map, Space sp)
+	{
+		List<Space> result = new ArrayList<>();
+		
+		Point p = sp.getPoint();
+		
+		Point n = new Point(p.x, p.y + 1);
+		Point s = new Point(p.x, p.y - 1);
+		Point e = new Point(p.x + 1, p.y);
+		Point w = new Point(p.x - 1, p.y);
+		
+		Point g;
+		
+		g = n;
+		if (map.containsKey(g))
+		{
+			Space k = map.get(g);
+			if (k == null || k.getType() != BoxType.Blocked)
+				result.add(k);
+		}
+		else
+			result.add(null);
+		
+		g = s;
+		if (map.containsKey(g))
+		{
+			Space k = map.get(g);
+			if (k == null || k.getType() != BoxType.Blocked)
+				result.add(k);
+		}
+		else
+			result.add(null);
+		
+		g = e;
+		if (map.containsKey(g))
+		{
+			Space k = map.get(g);
+			if (k == null || k.getType() != BoxType.Blocked)
+				result.add(k);
+		}
+		else
+			result.add(null);
+		
+		g = w;
+		if (map.containsKey(g))
+		{
+			Space k = map.get(g);
+			if (k == null || k.getType() != BoxType.Blocked)
+				result.add(k);
+		}
+		else
+			result.add(null);
+		
+		
+		return result;
 	}
 }
