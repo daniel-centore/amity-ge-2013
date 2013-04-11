@@ -798,6 +798,7 @@ class Dijkstras
 	 */
 	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
+		// TODO: Improve the speed of this function. This is where the majority of the time is spent.
 		if (!map.containsKey(INFI))
 			map.put(INFI, unexp);
 		
