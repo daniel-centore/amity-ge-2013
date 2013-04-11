@@ -784,6 +784,7 @@ class Dijkstras
 		unexp.setLength(Integer.MAX_VALUE);
 	}
 
+	static final Point INFI = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
 	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
@@ -797,7 +798,8 @@ class Dijkstras
 	 */
 	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
-		map.put(new Point(Integer.MAX_VALUE, Integer.MAX_VALUE), unexp);
+		if (!map.containsKey(INFI))
+			map.put(INFI, unexp);
 		
 		reset(start);
 
@@ -1205,6 +1207,8 @@ class BruteForcePathfinder
 				Dijkstras k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
 				while (true)
 				{
+					k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
+					
 					Stack<Space> toKey = k.shortestToType(temp.getLocation(), BoxType.Key);
 					if (toKey == null)
 						break;
@@ -1390,12 +1394,14 @@ class BruteForcePathfinder
  */
 class Path
 {
-	 private static final MemoryCounter mc = new MemoryCounter();
-	 
+	private static final MemoryCounter mc = new MemoryCounter();
+	
 	private HashMap<Point, Space> map;			// The current state of the map in this path
 	private int keys;							// The number of keys the player has
 	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
-	private Dijkstras dijkstras;
+//	private Dijkstras dijkstras;
+	
+	private Path previous;
 
 	/**
 	 * Creates a new Path
@@ -1415,7 +1421,7 @@ class Path
 //		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
 		path.add(map.get(location));
 		
-		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 	}
 
 	/**
@@ -1425,18 +1431,19 @@ class Path
 	 * @param path The path so far
 	 */
 	@SuppressWarnings("unchecked")
-	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<Space> path)
+	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<Space> path, Path previous)
 	{
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load2(newMap);
+//		load2(newMap);
 //		load(newMap);			// clone the map
 
-		this.path = (ArrayList<Space>) path.clone();		// clone the old path		// TODO: Instead of cloning the last path, instead link to it like a LinkedList
+		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
 		
-		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 		
+		this.previous = previous;
 	}
 
 	private void load2(HashMap<Point, Space> newMap)
@@ -1448,7 +1455,7 @@ class Path
 	@Override
 	public Path clone()
 	{
-		return new Path(this.map, this.keys, this.path);
+		return new Path(this.map, this.keys, this.path, this);
 	}
 
 	/**
@@ -1487,13 +1494,13 @@ class Path
 
 				keys--;
 //				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
-				cloneSpace(next).setType(BoxType.Open);
+				cloneSpaceToMap(next).setType(BoxType.Open);
 				break;
 
 			case Key:
 				keys++;
 //				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
-				cloneSpace(next).setType(BoxType.Open);
+				cloneSpaceToMap(next).setType(BoxType.Open);
 				break;
 
 			default:
@@ -1510,7 +1517,7 @@ class Path
 	 */
 	private void pruneKeys()
 	{
-
+		Dijkstras dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 		for (Space s : this.getMap().values())
 		{
 			if (s.getType() == BoxType.Key)
@@ -1519,13 +1526,13 @@ class Path
 				if (toKey == null)		// If we cannot get to the key, continue
 					continue;
 
-				cloneSpace(s).setType(BoxType.Open);		// Mark it as open (even though it's not!)
+				cloneSpaceToMap(s).setType(BoxType.Open);		// Mark it as open (even though it's not!)
 			}
 		}
 
 	}
 	
-	private Space cloneSpace(Space me)
+	private Space cloneSpaceToMap(Space me)
 	{
 		Point p = me.getPoint();
 
@@ -1582,7 +1589,22 @@ class Path
 	 */
 	public HashMap<Point, Space> getMap()
 	{
-		return map;
+		HashMap<Point, Space> temp = new HashMap<>();
+//		temp.putAll(map);
+		
+		Path p = this;
+		do {
+//			temp.putAll(p.map);
+			for (Space s : p.map.values())
+			{
+				if (!temp.containsKey(s.getPoint()))
+					temp.put(s.getPoint(), s);
+			}
+			
+			p = p.previous;
+		} while (p != null);
+		
+		return temp;
 	}
 
 	/**
