@@ -789,14 +789,19 @@ class Dijkstras
 
 //		System.out.println("Goal: "+goal+" "+type);
 		
+		List<Space> parts = new ArrayList<>();
+		
+		for (Space k : map.values())
+		{
+			if (k.getType() != BoxType.Blocked)
+				parts.add(k);
+		}
+		
 		while (true)
 		{
 			// Is the goal still in the graph?
-			for (Space sw : map.values())
+			for (Space sw : parts)
 			{
-				if (sw.getType() == BoxType.Blocked)
-					continue;
-				
 				if ((goal != null && !sw.isUnexplored() && sw.equals(goal))				// If we found the Space goal, or
 						|| (goal == null && !sw.isUnexplored() && sw.getType() == type)	// If we found the type goal,  or
 						|| (goal == null && sw.isUnexplored() && type == null)				// If we found the type goal (for unexplored)
@@ -830,7 +835,7 @@ class Dijkstras
 			}
 
 			// Choose the vertex with the least distance
-			Space min = min(map.values());
+			Space min = min(parts);
 			
 
 			if (min == null) // No possible path to our goal
@@ -1381,7 +1386,8 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load(newMap);			// Clone the map
+		load2(newMap);
+//		load(newMap);			// Clone the map
 
 		path = new ArrayList<>();
 //		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
