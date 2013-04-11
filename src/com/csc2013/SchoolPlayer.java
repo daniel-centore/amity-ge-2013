@@ -36,7 +36,7 @@ public class SchoolPlayer
 	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
 
 	public FieldMap map = new FieldMap(LEARNING_TRACKER);		// The map for the current game
-	private Stack<SpaceWrapper> currentStack = null;			// The current stack of moves we're following
+	private Stack<Space> currentStack = null;			// The current stack of moves we're following
 	private int moves = 0;										// The number of moves we've taken so far
 
 	/** 
@@ -93,7 +93,7 @@ public class SchoolPlayer
 			break;
 		}
 		
-		System.out.println(action);
+//		System.out.println(action);
 
 		return action;
 	}
@@ -134,7 +134,7 @@ public class SchoolPlayer
 		moves++;		// Keep track of how many moves we've taken
 
 		// About to hit the exit. Save our best solved exit case time so far to improve future algorithm runtimes.
-		if (currentStack.get(currentStack.size() - 2).getSpace().getType() == BoxType.Exit)
+		if (currentStack.get(currentStack.size() - 2).getType() == BoxType.Exit)
 		{
 			LEARNING_TRACKER.setBestCase(moves);
 		}
@@ -143,7 +143,7 @@ public class SchoolPlayer
 		if (act != Action.Use)
 			currentStack.pop(); 		// Pop off our last movement
 		else
-			currentStack.get(currentStack.size() - 2).getSpace().setType(BoxType.Open);		// The door is now open. Mark it as such and we'll walk to it next move.
+			currentStack.get(currentStack.size() - 2).setType(BoxType.Open);		// The door is now open. Mark it as such and we'll walk to it next move.
 
 		return act;
 	}
@@ -155,13 +155,13 @@ public class SchoolPlayer
 	 * @throws RuntimeException If the stack is bad (ie The two moves are not consecutive)
 	 * @return The action appropriate to take (either moving in a direction or opening a door)
 	 */
-	private Action toAction(Stack<SpaceWrapper> toExit)
+	private Action toAction(Stack<Space> toExit)
 	{
-		if (toExit.get(toExit.size() - 2).getSpace().getType() == BoxType.Door)		// If next space is a door, open it
+		if (toExit.get(toExit.size() - 2).getType() == BoxType.Door)		// If next space is a door, open it
 			return Action.Use;
 
-		Point a = toExit.get(toExit.size() - 1).getSpace().getPoint();
-		Point b = toExit.get(toExit.size() - 2).getSpace().getPoint();
+		Point a = toExit.get(toExit.size() - 1).getPoint();
+		Point b = toExit.get(toExit.size() - 2).getPoint();
 
 		if (b.y - 1 == a.y)
 			return Action.North;
@@ -422,6 +422,12 @@ class Space
 	// The (x,y) coordinate of this space
 	private final int x;
 	private final int y;
+	
+	private int length;
+	private boolean removed = false;
+	private Space previous = null;
+	
+	private boolean unexplored = false;
 
 	/**
 	 * Creates a space
@@ -455,6 +461,9 @@ class Space
 	 */
 	public int difficulty(BoxType t, Space goal, int keys)
 	{
+		if (type == null)
+			return 1;
+		
 		switch (type)
 		{
 		case Blocked:
@@ -517,7 +526,7 @@ class Space
 	@Override
 	public String toString()
 	{
-		return "Space [type=" + type + ", x=" + x + ", y=" + y + "]";
+		return "Space [type=" + type + ", x=" + x + ", y=" + y + ", removed=" + removed + "]";
 	}
 
 	/**
@@ -550,6 +559,46 @@ class Space
 		if (y != other.y)
 			return false;
 		return true;
+	}
+
+	public int getLength()
+	{
+		return length;
+	}
+
+	public void setLength(int length)
+	{
+		this.length = length;
+	}
+
+	public boolean isRemoved()
+	{
+		return removed;
+	}
+
+	public void setRemoved(boolean removed)
+	{
+		this.removed = removed;
+	}
+
+	public Space getPrevious()
+	{
+		return previous;
+	}
+
+	public void setPrevious(Space previous)
+	{
+		this.previous = previous;
+	}
+
+	public boolean isUnexplored()
+	{
+		return unexplored;
+	}
+
+	public void setUnexplored(boolean unexplored)
+	{
+		this.unexplored = unexplored;
 	}
 
 }
@@ -610,7 +659,7 @@ class Dijkstras
 	 * 			The first and last elements are where you are and where you want to be, respectively. 
 	 * @throws GetKeyException If we want you to pick up a key instead of following a path
 	 */
-	public Stack<SpaceWrapper> getNext() throws GetKeyException
+	public Stack<Space> getNext() throws GetKeyException
 	{
 		// Find shortest path to an exit. Take it if it exists.
 		// This uses a brute force to try to find the very most ideal path
@@ -630,7 +679,7 @@ class Dijkstras
 			if (hasExit)
 			{
 
-				Stack<SpaceWrapper> toExit = new BruteForcePathfinder(keys, location, map, bestCase).toType(BoxType.Exit);
+				Stack<Space> toExit = new BruteForcePathfinder(keys, location, map, bestCase).toType(BoxType.Exit);
 				if (toExit != null)
 					return toExit;
 			}
@@ -645,7 +694,7 @@ class Dijkstras
 			throw new GetKeyException();
 
 		// Grab keys if we need them and they are nearby
-		Stack<SpaceWrapper> toCloseKey = shortestToType(location, BoxType.Key);
+		Stack<Space> toCloseKey = shortestToType(location, BoxType.Key);
 		if (toCloseKey != null)
 		{
 			int dist = toCloseKey.size();
@@ -659,17 +708,17 @@ class Dijkstras
 		}
 
 		// == Find shortest path to an unexplored area ==
-		List<Stack<SpaceWrapper>> possiblePaths = new ArrayList<>();		// Possible paths to unexplored
+		List<Stack<Space>> possiblePaths = new ArrayList<>();		// Possible paths to unexplored
 
 		// Add the shortest path to unexplored not including doors
-		Stack<SpaceWrapper> toUnknown = new BruteForcePathfinder(keys, location, map, Integer.MAX_VALUE).toType(null);//shortestToType(location, null, null);
+		Stack<Space> toUnknown = new BruteForcePathfinder(keys, location, map, Integer.MAX_VALUE).toType(null);//shortestToType(location, null, null);
 		if (toUnknown != null)
 			possiblePaths.add(toUnknown);
 
 		// Find the shortest path to the unexplored areas now
 
-		Stack<SpaceWrapper> min;
-		Iterator<Stack<SpaceWrapper>> itr = possiblePaths.iterator();
+		Stack<Space> min;
+		Iterator<Stack<Space>> itr = possiblePaths.iterator();
 		if (!itr.hasNext())
 		{
 			String s = "This map is seemingly impossible to solve in the current state.\n" +
@@ -683,7 +732,7 @@ class Dijkstras
 		min = itr.next();
 		while (itr.hasNext())
 		{
-			Stack<SpaceWrapper> next = itr.next();
+			Stack<Space> next = itr.next();
 
 			if (next.size() < min.size())
 				min = next;
@@ -699,7 +748,7 @@ class Dijkstras
 	 * @param type The type of space we want to go to
 	 * @return The shortest path to the closest space of the requested type
 	 */
-	public Stack<SpaceWrapper> shortestToType(Point start, BoxType type)
+	public Stack<Space> shortestToType(Point start, BoxType type)
 	{
 		return shortestToType(start, type, null);
 	}
@@ -710,7 +759,7 @@ class Dijkstras
 	 * @param goal The space we want to go to
 	 * @return The shortest path to the requested space
 	 */
-	public Stack<SpaceWrapper> shortestToType(Point start, Space goal)
+	public Stack<Space> shortestToType(Point start, Space goal)
 	{
 		return shortestToType(start, null, goal);
 	}
@@ -726,66 +775,85 @@ class Dijkstras
 	 * @return The {@link Stack} of moves to follow. The first element will be the {@link Space} on {@link Point} and the last element is the goal.
 	 * 			This can be null if there is no possible path.
 	 */
-	private Stack<SpaceWrapper> shortestToType(Point start, BoxType type, Space goal)
+	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
-		HashMap<Space, SpaceWrapper> vertices = wrap(this.getUnblockedSpaces(), start);		// Wraps all the spaces in SpaceWrappers
+//		System.out.println("Reset");
+//		HashMap<Space, SpaceWrapper> vertices = wrap(this.getUnblockedSpaces(), start);		// Wraps all the spaces in SpaceWrappers
+		reset(start);
+		
+		Space unexp = new Space(Integer.MAX_VALUE, Integer.MAX_VALUE, null);
+		unexp.setUnexplored(true);
+		unexp.setLength(Integer.MAX_VALUE);
+		
+		map.put(new Point(Integer.MAX_VALUE, Integer.MAX_VALUE), unexp);
 
+//		System.out.println("Goal: "+goal+" "+type);
+		
 		while (true)
 		{
 			// Is the goal still in the graph?
-			for (SpaceWrapper sw : vertices.values())
+			for (Space sw : map.values())
 			{
-				Space space = sw.getSpace();
-
-				if ((goal != null && space != null && space.equals(goal))				// If we found the Space goal, or
-						|| (goal == null && space != null && space.getType() == type)	// If we found the type goal,  or
-						|| (goal == null && space == null && type == null)				// If we found the type goal (for unexplored)
+				if (sw.getType() == BoxType.Blocked)
+					continue;
+				
+				if ((goal != null && !sw.isUnexplored() && sw.equals(goal))				// If we found the Space goal, or
+						|| (goal == null && !sw.isUnexplored() && sw.getType() == type)	// If we found the type goal,  or
+						|| (goal == null && sw.isUnexplored() && type == null)				// If we found the type goal (for unexplored)
 				)
 				{
 					if (sw.isRemoved())		// And we've found the shortest possible path to it
 					{
+//						System.out.println("GOT HERE");
 						// Generate a stack of the path and return it
 						// This is based on the backward linking of one node in the path to the next
-						Stack<SpaceWrapper> fullPath = new Stack<>();
-
-						SpaceWrapper path = sw;
+						Stack<Space> fullPath = new Stack<>();
+						
+//						SpaceWrapper path = sw;
+						Space path = sw;
 						do
 						{
+//							System.out.println(path);
 							fullPath.push(path);
 							path = path.getPrevious();
 
 						} while (path != null);
-
+						
 						if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path. Otherwise we've got a dud.
 							return null;
 
+//						System.out.println("Found path");
+						
 						return fullPath;
 					}
 				}
 			}
 
 			// Choose the vertex with the least distance
-			SpaceWrapper min = min(vertices.values());
+			Space min = min(map.values());
+			
 
 			if (min == null) // No possible path to our goal
 				return null;
 
 			min.setRemoved(true);			// Remove it from the graph (or "mark it as visited")
 
-			if (min.getSpace() != null)
+//			System.out.println(min);
+			if (min != null)
 			{
 				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
-				for (Space sp : MapUtils.findSurroundingSpaces(map, min.getSpace()))//min.getSpace().getSurrounding())
+				for (Space sp : MapUtils.findSurroundingSpaces(map, min, unexp))//min.getSpace().getSurrounding())
 				{
-					if (sp == null && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
+					if ((sp.isUnexplored()) && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
 						continue;
 
-					SpaceWrapper wrap = vertices.get(sp);
+//					SpaceWrapper wrap = vertices.get(sp);
+					Space wrap = sp;
 
 					if (wrap.isRemoved())			// Ignore the item if we've already visited it
 						continue;
 
-					if (sp != null && sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
+					if ((sp != null) && sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
 						continue;
 
 					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, goal, keys)); // Difficulty for getting to an unexplored area is 1
@@ -809,15 +877,18 @@ class Dijkstras
 	 * @param collection The {@link Collection} of {@link SpaceWrapper}s
 	 * @return The {@link SpaceWrapper} with the smallest value.
 	 */
-	private SpaceWrapper min(Collection<SpaceWrapper> collection)
+	private Space min(Collection<Space> collection)
 	{
-		SpaceWrapper shortest = null;
-		Iterator<SpaceWrapper> itr = collection.iterator();
+		Space shortest = null;
+		Iterator<Space> itr = collection.iterator();
 
 		while (itr.hasNext())
 		{
-			SpaceWrapper next = itr.next();
-
+			Space next = itr.next();
+			
+			if (next.getType() == BoxType.Blocked)
+				continue;
+			
 			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
@@ -826,8 +897,10 @@ class Dijkstras
 					shortest = next;
 			}
 		}
+		
+//		System.out.println(collection);
 
-		if (shortest.getLength() == Integer.MAX_VALUE)		// The 'shortest' path is impossible to get to.
+		if (shortest == null || shortest.getLength() == Integer.MAX_VALUE)		// The 'shortest' path is impossible to get to.
 		{
 			return null;
 		}
@@ -848,24 +921,41 @@ class Dijkstras
 	 * @param start	The start node whose distance we set to 0.
 	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
 	 */
-	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
+//	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
+//	{
+//		HashMap<Space, SpaceWrapper> result = new HashMap<>();
+//
+//		// Add the null value (indicates unknown region)
+//		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
+//
+//		// Add all the other values
+//		for (Space sp : spaces)
+//		{
+//			int dist = Integer.MAX_VALUE;
+//			if (sp.getPoint().equals(start))
+//				dist = 0;
+//
+//			result.put(sp, new SpaceWrapper(dist, sp));
+//		}
+//
+//		return result;
+//	}
+	
+	private void reset(Point start)
 	{
-		HashMap<Space, SpaceWrapper> result = new HashMap<>();
-
-		// Add the null value (indicates unknown region)
-		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
-
-		// Add all the other values
-		for (Space sp : spaces)
+		for (Space s : map.values())
 		{
+			if (s == null)
+				continue;
+			
 			int dist = Integer.MAX_VALUE;
-			if (sp.getPoint().equals(start))
+			if (s.getPoint().equals(start))
 				dist = 0;
-
-			result.put(sp, new SpaceWrapper(dist, sp));
+			
+			s.setLength(dist);
+			s.setRemoved(false);
+			s.setPrevious(null);
 		}
-
-		return result;
 	}
 
 	/**
@@ -1032,15 +1122,16 @@ class BruteForcePathfinder
 	 * @param type The {@link BoxType} to look for (you can also use null to indicate an unexplored area)
 	 * @return
 	 */
-	public Stack<SpaceWrapper> toType(BoxType type)
+	public Stack<Space> toType(BoxType type)
 	{
+		System.out.println("Goal: "+type);
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
 
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
 
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
-		int shortest = bestCase;
+		int shortest = Math.min(bestCase, Tournament.maxSteps);
 
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
@@ -1054,7 +1145,7 @@ class BruteForcePathfinder
 
 				Dijkstras d = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
 
-				Stack<SpaceWrapper> toExit = d.shortestToType(p.getLocation(), type);		// Find shortest path to an exit
+				Stack<Space> toExit = d.shortestToType(p.getLocation(), type);		// Find shortest path to an exit
 				if (toExit != null)			// There is such a path
 				{
 					p = p.clone();
@@ -1066,7 +1157,7 @@ class BruteForcePathfinder
 				}
 			}
 
-			System.out.println(solved.size() + " " + shortest);
+			System.out.println(solved.size() + " " + shortest+" "+paths.size());
 
 			// PART 2: For each path, find all possible reasonable paths to keys
 
@@ -1090,7 +1181,7 @@ class BruteForcePathfinder
 				Dijkstras k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
 				while (true)
 				{
-					Stack<SpaceWrapper> toKey = k.shortestToType(temp.getLocation(), BoxType.Key);
+					Stack<Space> toKey = k.shortestToType(temp.getLocation(), BoxType.Key);
 					if (toKey == null)
 						break;
 					else
@@ -1141,8 +1232,8 @@ class BruteForcePathfinder
 					{
 						key = spi.next();
 
-						Stack<SpaceWrapper> original = k.shortestToType(p.getLocation(), key);
-						Stack<SpaceWrapper> after = k.shortestToType(temp.getLocation(), key);
+						Stack<Space> original = k.shortestToType(p.getLocation(), key);
+						Stack<Space> after = k.shortestToType(temp.getLocation(), key);
 
 						if (after.size() < original.size())		// If we got closer to the key by taking the path
 						{
@@ -1175,7 +1266,7 @@ class BruteForcePathfinder
 
 						k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
 
-						Stack<SpaceWrapper> toKey = k.shortestToType(next.getLocation(), s);	// Find the path to the key
+						Stack<Space> toKey = k.shortestToType(next.getLocation(), s);	// Find the path to the key
 
 						if (toKey == null)		// This happens if we are already standing on the key
 						{
@@ -1221,7 +1312,7 @@ class BruteForcePathfinder
 				{
 					if (s.getType() == BoxType.Door)
 					{
-						Stack<SpaceWrapper> toDoor = k.shortestToType(p.getLocation(), s);
+						Stack<Space> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)			// No possible path to that door
 							continue;
 
@@ -1253,8 +1344,8 @@ class BruteForcePathfinder
 		}
 
 		// A path does exist - Put it on a stack in the format we like
-		List<SpaceWrapper> l = ideal.getPath();
-		Stack<SpaceWrapper> result = new Stack<>();
+		List<Space> l = ideal.getPath();
+		Stack<Space> result = new Stack<>();
 		for (int i = l.size() - 1; i >= 0; i--)
 		{
 			result.push(l.get(i));
@@ -1277,7 +1368,7 @@ class Path
 	 
 	private HashMap<Point, Space> map;			// The current state of the map in this path
 	private int keys;							// The number of keys the player has
-	private ArrayList<SpaceWrapper> path;		// The path so far. The first element is first thing to perform
+	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
 
 	/**
 	 * Creates a new Path
@@ -1293,7 +1384,8 @@ class Path
 		load(newMap);			// Clone the map
 
 		path = new ArrayList<>();
-		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
+//		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
+		path.add(map.get(location));
 	}
 
 	/**
@@ -1303,7 +1395,7 @@ class Path
 	 * @param path The path so far
 	 */
 	@SuppressWarnings("unchecked")
-	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<SpaceWrapper> path)
+	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<Space> path)
 	{
 		this.keys = keys;
 
@@ -1311,7 +1403,7 @@ class Path
 		load2(newMap);
 //		load(newMap);			// clone the map
 
-		this.path = (ArrayList<SpaceWrapper>) path.clone();		// clone the old path		// TODO: Instead of cloning the last path, instead link to it like a LinkedList
+		this.path = (ArrayList<Space>) path.clone();		// clone the old path		// TODO: Instead of cloning the last path, instead link to it like a LinkedList
 		
 	}
 
@@ -1332,25 +1424,25 @@ class Path
 	 * @param proceed The path to add onto it
 	 */
 	@SuppressWarnings("unchecked")
-	public void addToPath(Stack<SpaceWrapper> proceed)
+	public void addToPath(Stack<Space> proceed)
 	{
-		proceed = (Stack<SpaceWrapper>) proceed.clone();
+		proceed = (Stack<Space>) proceed.clone();
 		// Don't put on the first element of the path if it matches the last element of our current list
-		if (proceed.peek().getSpace().equals(path.get(path.size() - 1).getSpace()))
+		if (proceed.peek().equals(path.get(path.size() - 1)))
 			proceed.pop();
 
 		while (!proceed.isEmpty())
 		{
-			SpaceWrapper next = proceed.pop();
+			Space next = proceed.pop();
 
-			if (next.getSpace() == null)		// Do not include walking to unknown in the path
+			if (next.isUnexplored())		// Do not include walking to unknown in the path
 			{
 				break;
 			}
 
 			// Set the type and location.
-			BoxType type = next.getSpace().getType();
-			Point p = next.getSpace().getPoint();
+			BoxType type = next.getType();
+			Point p = next.getPoint();
 
 			// Handle key usage along the path
 			switch (type)
@@ -1363,20 +1455,21 @@ class Path
 
 				keys--;
 //				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
-				cloneSpace(next.getSpace()).setType(BoxType.Open);
+				cloneSpace(next).setType(BoxType.Open);
 				break;
 
 			case Key:
 				keys++;
 //				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
-				cloneSpace(next.getSpace()).setType(BoxType.Open);
+				cloneSpace(next).setType(BoxType.Open);
 				break;
 
 			default:
 				break;
 			}
 
-			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
+//			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
+			path.add(next);
 		}
 	}
 
@@ -1391,7 +1484,7 @@ class Path
 		{
 			if (s.getType() == BoxType.Key)
 			{
-				Stack<SpaceWrapper> toKey = k.shortestToType(this.getLocation(), s);
+				Stack<Space> toKey = k.shortestToType(this.getLocation(), s);
 				if (toKey == null)		// If we cannot get to the key, continue
 					continue;
 
@@ -1467,14 +1560,14 @@ class Path
 	 */
 	public Point getLocation()
 	{
-		return new Point(path.get(path.size() - 1).getSpace().getPoint());
+		return new Point(path.get(path.size() - 1).getPoint());
 	}
 
 	/**
 	 * Gets the current simulation path
 	 * @return The current path
 	 */
-	public List<SpaceWrapper> getPath()
+	public List<Space> getPath()
 	{
 		return path;
 	}
@@ -1544,7 +1637,7 @@ class LearningTracker
 
 class MapUtils
 {
-	public static List<Space> findSurroundingSpaces(HashMap<Point, Space> map, Space sp)
+	public static List<Space> findSurroundingSpaces(HashMap<Point, Space> map, Space sp, Space unexp)
 	{
 		List<Space> result = new ArrayList<>();
 		
@@ -1557,45 +1650,59 @@ class MapUtils
 		
 		Point g;
 		
+		boolean u = false;
+		
 		g = n;
 		if (map.containsKey(g))
 		{
 			Space k = map.get(g);
-			if (k == null || k.getType() != BoxType.Blocked)
+			if (k.getType() != BoxType.Blocked)
 				result.add(k);
 		}
-		else
-			result.add(null);
+		else if (!u)
+		{
+			result.add(unexp);
+			u = true;
+		}
 		
 		g = s;
 		if (map.containsKey(g))
 		{
 			Space k = map.get(g);
-			if (k == null || k.getType() != BoxType.Blocked)
+			if (k.getType() != BoxType.Blocked)
 				result.add(k);
 		}
-		else
-			result.add(null);
+		else if (!u)
+		{
+			result.add(unexp);
+			u = true;
+		}
 		
 		g = e;
 		if (map.containsKey(g))
 		{
 			Space k = map.get(g);
-			if (k == null || k.getType() != BoxType.Blocked)
+			if (k.getType() != BoxType.Blocked)
 				result.add(k);
 		}
-		else
-			result.add(null);
+		else if (!u)
+		{
+			result.add(unexp);
+			u = true;
+		}
 		
 		g = w;
 		if (map.containsKey(g))
 		{
 			Space k = map.get(g);
-			if (k == null || k.getType() != BoxType.Blocked)
+			if (k.getType() != BoxType.Blocked)
 				result.add(k);
 		}
-		else
-			result.add(null);
+		else if (!u)
+		{
+			result.add(unexp);
+			u = true;
+		}
 		
 		
 		return result;
