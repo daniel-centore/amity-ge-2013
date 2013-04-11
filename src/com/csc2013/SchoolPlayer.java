@@ -808,28 +808,29 @@ class Dijkstras
 		
 //		System.out.println("Goal: "+goal+" "+type);
 		
-		List<Space> parts = new ArrayList<>();
+		List<Space> unremoved = new ArrayList<>();
+		List<Space> removed = new ArrayList<>();
 		
 		for (Space k : map.values())
 		{
 			if (k.getType() != BoxType.Blocked)
-				parts.add(k);
+				unremoved.add(k);
 		}
 		
-		reset(start, parts);
+		reset(start, unremoved);
 		
 		while (true)
 		{
 			long t = System.currentTimeMillis();
 			// Is the goal still in the graph?
-			for (Space sw : parts)
+			for (Space sw : removed)
 			{
 				if ((goal != null && !sw.isUnexplored() && sw.equals(goal))				// If we found the Space goal, or
 						|| (goal == null && !sw.isUnexplored() && sw.getType() == type)	// If we found the type goal,  or
 						|| (goal == null && sw.isUnexplored() && type == null)				// If we found the type goal (for unexplored)
 				)
 				{
-					if (sw.isRemoved())		// And we've found the shortest possible path to it
+//					if (sw.isRemoved())		// And we've found the shortest possible path to it
 					{
 //						System.out.println("GOT HERE");
 						// Generate a stack of the path and return it
@@ -862,13 +863,15 @@ class Dijkstras
 			t = System.currentTimeMillis();
 
 			// Choose the vertex with the least distance
-			Space min = min(parts);
+			Space min = min(unremoved);
 			
 
 			if (min == null) // No possible path to our goal
 				return null;
 
 			min.setRemoved(true);			// Remove it from the graph (or "mark it as visited")
+			removed.add(min);
+			unremoved.remove(min);
 
 //			System.out.println(min);
 			if (min != null)
@@ -920,7 +923,7 @@ class Dijkstras
 			if (next.getType() == BoxType.Blocked)
 				continue;
 			
-			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
+//			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
 					shortest = next;
