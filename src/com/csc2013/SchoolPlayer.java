@@ -471,30 +471,30 @@ class Space
 	 * @throws RuntimeException If this space is a door and t is not a door (ie we are not looking for one)
 	 * @return The difficulty of traversing the node.
 	 */
-	public int difficulty(BoxType t, Space goal, int keys)
-	{
-		if (type == null)
-			return 1;
-		
-		switch (type)
-		{
-		case Blocked:
-			return Integer.MAX_VALUE;
-
-		case Door:
-			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
-				return 1; // if we are looking for a door then give it a weight of one
-			else
-				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
-
-		case Key:
-		case Exit:
-		case Open:
-			return 1;
-		}
-
-		throw new RuntimeException("This should not be possible");
-	}
+//	public int difficulty(BoxType t, Space goal, int keys)
+//	{
+//		if (type == null)
+//			return 1;
+//		
+//		switch (type)
+//		{
+//		case Blocked:
+//			return Integer.MAX_VALUE;
+//
+//		case Door:
+//			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
+//				return 1; // if we are looking for a door then give it a weight of one
+//			else
+//				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
+//
+//		case Key:
+//		case Exit:
+//		case Open:
+//			return 1;
+//		}
+//
+//		throw new RuntimeException("This should not be possible");
+//	}
 
 
 	/**
@@ -785,6 +785,10 @@ class Dijkstras
 	}
 
 	static final Point INFI = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+	
+	static long A = 0;
+	static long B = 0;
+	
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
 	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
@@ -802,8 +806,6 @@ class Dijkstras
 		if (!map.containsKey(INFI))
 			map.put(INFI, unexp);
 		
-		reset(start);
-
 //		System.out.println("Goal: "+goal+" "+type);
 		
 		List<Space> parts = new ArrayList<>();
@@ -814,8 +816,11 @@ class Dijkstras
 				parts.add(k);
 		}
 		
+		reset(start, parts);
+		
 		while (true)
 		{
+			long t = System.currentTimeMillis();
 			// Is the goal still in the graph?
 			for (Space sw : parts)
 			{
@@ -841,6 +846,9 @@ class Dijkstras
 
 						} while (path != null);
 						
+						System.out.println("A: "+A);
+						System.out.println("B: "+B);
+						
 						if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path. Otherwise we've got a dud.
 							return null;
 
@@ -850,6 +858,8 @@ class Dijkstras
 					}
 				}
 			}
+			A += System.currentTimeMillis() - t;
+			t = System.currentTimeMillis();
 
 			// Choose the vertex with the least distance
 			Space min = min(parts);
@@ -866,28 +876,27 @@ class Dijkstras
 				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
 				for (Space sp : MapUtils.findSurroundingSpaces(map, min, unexp))//min.getSpace().getSurrounding())
 				{
+					if (sp.isRemoved())			// Ignore the item if we've already visited it
+						continue;
+					
 					if ((sp.isUnexplored()) && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
 						continue;
 
-//					SpaceWrapper wrap = vertices.get(sp);
-					Space wrap = sp;
-
-					if (wrap.isRemoved())			// Ignore the item if we've already visited it
+					if (sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
 						continue;
 
-					if ((sp != null) && sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
-						continue;
-
-					int length = min.getLength() + (sp == null ? 1 : sp.difficulty(type, goal, keys)); // Difficulty for getting to an unexplored area is 1
+					int length = min.getLength() + 1; // Difficulty for getting anywhere is 1
 
 					// If this is the shortest path to the node so far, label it as such.
-					if (length < wrap.getLength())
+					if (length < sp.getLength())
 					{
-						wrap.setLength(length);
-						wrap.setPrevious(min);
+						sp.setLength(length);
+						sp.setPrevious(min);
 					}
 				}
 			}
+			
+			B += System.currentTimeMillis() - t;
 			// Time for another iteration of the while loop....
 		}
 	}
@@ -915,7 +924,7 @@ class Dijkstras
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
 					shortest = next;
-				else if (shortest.getLength() == next.getLength() && rand.nextBoolean())		// If they are equal randomly pick one
+				else if (shortest.getLength() == next.getLength())		// If they are equal randomly pick one
 					shortest = next;
 			}
 		}
@@ -941,6 +950,7 @@ class Dijkstras
 	 * 
 	 * @param spaces The {@link List} of {@link Space}s
 	 * @param start	The start node whose distance we set to 0.
+	 * @param parts 
 	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
 	 */
 //	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
@@ -963,9 +973,9 @@ class Dijkstras
 //		return result;
 //	}
 	
-	private void reset(Point start)
+	private void reset(Point start, List<Space> parts)
 	{
-		for (Space s : map.values())
+		for (Space s : parts)
 		{
 			if (s == null)
 				continue;
