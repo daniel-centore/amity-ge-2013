@@ -1178,8 +1178,8 @@ class BruteForcePathfinder
 					p.addToPath(toExit);		// Add going to the exit to the path
 					solved.add(p);				// Add the path to the solved list
 
-					if (p.getPath().size() < shortest)		// Mark the path as shortest if it is
-						shortest = p.getPath().size();
+					if (p.getPathSize() < shortest)		// Mark the path as shortest if it is
+						shortest = p.getPathSize();
 				}
 			}
 			
@@ -1194,7 +1194,7 @@ class BruteForcePathfinder
 			{
 				Path p = itr.next();
 
-				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
+				if (p.getPathSize() > shortest)		// Prune paths that are already greater than the shortest one so far
 				{
 					itr.remove();
 					continue;
@@ -1321,7 +1321,7 @@ class BruteForcePathfinder
 			{
 				Path p = itr.next();
 
-				if (p.getPath().size() > shortest)		// Prune paths that are already greater than the shortest one so far
+				if (p.getPathSize() > shortest)		// Prune paths that are already greater than the shortest one so far
 				{
 					itr.remove();
 					continue;
@@ -1364,7 +1364,7 @@ class BruteForcePathfinder
 		Path ideal = null;
 		for (Path s : solved)
 		{
-			if (ideal == null || s.getPath().size() < ideal.getPath().size())
+			if (ideal == null || s.getPathSize() < ideal.getPathSize())
 				ideal = s;
 		}
 
@@ -1400,6 +1400,7 @@ class Path
 	private int keys;							// The number of keys the player has
 	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
 //	private Dijkstras dijkstras;
+	private int pathSize = 0;
 	
 	private Path previous;
 
@@ -1436,14 +1437,17 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
+		
+		this.path = new ArrayList<>();
 //		load2(newMap);
 //		load(newMap);			// clone the map
 
-		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
+//		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
 		
 //		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 		
 		this.previous = previous;
+		this.pathSize = previous.pathSize;
 	}
 
 	private void load2(HashMap<Point, Space> newMap)
@@ -1467,7 +1471,9 @@ class Path
 	{
 		proceed = (Stack<Space>) proceed.clone();
 		// Don't put on the first element of the path if it matches the last element of our current list
-		if (proceed.peek().equals(path.get(path.size() - 1)))
+		
+		List<Space> temp = getPath();		// TODO: Unslow
+		if (proceed.peek().equals(temp.get(temp.size() - 1)))
 			proceed.pop();
 
 		while (!proceed.isEmpty())
@@ -1509,6 +1515,7 @@ class Path
 
 //			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
 			path.add(next);
+			pathSize++;
 		}
 	}
 
@@ -1613,7 +1620,9 @@ class Path
 	 */
 	public Point getLocation()
 	{
-		return path.get(path.size() - 1).getPoint();
+		List<Space> temp = getPath();		// TODO: Unslow
+		
+		return temp.get(temp.size() - 1).getPoint();
 	}
 
 	/**
@@ -1622,13 +1631,34 @@ class Path
 	 */
 	public List<Space> getPath()
 	{
-		return path;
+		Stack<Path> backward = new Stack<>();
+		
+		Path p = this;
+		
+		do
+		{
+			backward.add(p);
+			
+			p = p.previous;
+		} while (p != null);
+		
+		List<Space> result = new ArrayList<>();
+		
+		while (!backward.isEmpty())
+			result.addAll(backward.pop().path);
+		
+		return result;
 	}
 
 	@Override
 	public String toString()
 	{
 		return "Path [path=" + path + "]";
+	}
+
+	public int getPathSize()
+	{
+		return pathSize;
 	}
 }
 
