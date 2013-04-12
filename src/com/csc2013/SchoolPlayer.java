@@ -1,7 +1,6 @@
 package com.csc2013;
 
 import java.awt.Point;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Stack;
 
 import com.csc2013.Dijkstras.GetKeyException;
@@ -637,8 +635,6 @@ class Dijkstras
 	private HashMap<Point, Space> map;			// The player's current map
 	private int bestCase;						// The best case the player has encountered in this map
 
-	private Random rand = new Random();			// For making decisions between 2 seemingly identical paths
-
 	/**
 	 * Creates an instance of the Dijkstra's algorithm solver
 	 * @param keys Number of keys the player has
@@ -801,7 +797,6 @@ class Dijkstras
 	 */
 	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
-		// TODO: Improve the speed of this function. This is where the majority of the time is spent.
 		if (!map.containsKey(INFI))
 			map.put(INFI, unexp);
 
@@ -1485,12 +1480,9 @@ class BruteForcePathfinder
  */
 class Path
 {
-	private static final MemoryCounter mc = new MemoryCounter();
-
 	private HashMap<Point, Space> map;			// The current state of the map in this path
 	private int keys;							// The number of keys the player has
 	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
-	//	private Dijkstras dijkstras;
 	private int pathSize = 0;
 
 	private Path previous;
@@ -1537,7 +1529,6 @@ class Path
 	 * @param keys Number of keys the player has
 	 * @param path The path so far
 	 */
-	@SuppressWarnings("unchecked")
 	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<Space> path, Path previous)
 	{
 		this.keys = keys;
@@ -1578,7 +1569,7 @@ class Path
 		proceed = (Stack<Space>) proceed.clone();
 		// Don't put on the first element of the path if it matches the last element of our current list
 
-		List<Space> temp = getPath();		// TODO: Unslow
+		List<Space> temp = getPath();
 		if (proceed.peek().equals(temp.get(temp.size() - 1)))
 			proceed.pop();
 
@@ -1593,7 +1584,6 @@ class Path
 
 			// Set the type and location.
 			BoxType type = next.getType();
-			Point p = next.getPoint();
 
 			// Handle key usage along the path
 			switch (type)
@@ -1649,9 +1639,6 @@ class Path
 	{
 		Point p = me.getPoint();
 
-		int x = me.getX();
-		int y = me.getY();
-
 		Space sp = new Space(me.getX(), me.getY(), me.getType());		// add space
 		map.put(p, sp);
 
@@ -1663,27 +1650,6 @@ class Path
 		//		Point w = new Point(x - 1, y);
 
 		return sp;
-	}
-
-	/**
-	 * Clones the newMap
-	 * @param newMap The map to clone
-	 */
-	private void load(HashMap<Point, Space> newMap)
-	{
-		for (Space me : newMap.values())		// For all the spaces in the map
-		{
-			Point p = me.getPoint();
-
-			int x = me.getX();
-			int y = me.getY();
-
-			Space sp = new Space(me.getX(), me.getY(), me.getType());		// add space
-			map.put(p, sp);
-
-			// link space to surroundings
-
-		}
 	}
 
 	/**
@@ -1726,7 +1692,7 @@ class Path
 	 */
 	public Point getLocation()
 	{
-		List<Space> temp = getPath();		// TODO: Unslow
+		List<Space> temp = getPath();
 
 		return temp.get(temp.size() - 1).getPoint();
 	}
