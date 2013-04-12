@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 
-import javax.management.RuntimeErrorException;
-
 import com.csc2013.Dijkstras.GetKeyException;
 import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
@@ -33,6 +31,7 @@ import com.csc2013.DungeonMaze.Direction;
  */
 public class SchoolPlayer
 {
+	// Print out debug data?
 	public static final boolean VERBOSE = true;
 
 	// The data that we save across all runs
@@ -54,25 +53,26 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
-		if (!lastAction || giveUp)			// We failed, so let's just give up.
+		if (!lastAction || giveUp)		// We failed, so let's just give up.
 		{
 			if (VERBOSE)
 				System.out.println("FAILED. JUST DOING RANDOM MOVES.");
 
 			giveUp = true;
 
-			// Pick a random move that is possible to go to
 			return getSimpleAction(vision);
 		}
 
+		// Request our next move from the program
 		Action action = null;
 		try
 		{
-			action = amityNextMove(vision, keyCount);		// Request our next move from the program
+			action = amityNextMove(vision, keyCount);
 		} catch (Throwable t)
 		{
 			// In case something goes horribly wrong, this is better than getting disqualified.
-			t.printStackTrace();
+			if (VERBOSE)
+				t.printStackTrace();
 
 			giveUp = true;
 
@@ -153,6 +153,7 @@ public class SchoolPlayer
 			try
 			{
 				currentStack = new Dijkstras(keyCount, map).getNext();		// Request new move list
+
 			} catch (GetKeyException e)		// The algorithm requested that we pick up a key
 			{
 				currentStack = null;		// Force a recalculation next time.
@@ -176,9 +177,9 @@ public class SchoolPlayer
 
 		Action act = toAction(currentStack);		// Takes the next 2 positions and finds out what action is appropriate to take next
 		if (act != Action.Use)
-			currentStack.pop(); 		// Pop off our last movement
+			currentStack.pop(); 												// Pop off our last movement
 		else
-			currentStack.get(currentStack.size() - 2).setType(BoxType.Open);		// The door is now open. Mark it as such and we'll walk to it next move.
+			currentStack.get(currentStack.size() - 2).setType(BoxType.Open);	// The door is now open. Mark it as such and we'll walk to it next move.
 
 		return act;
 	}
@@ -195,9 +196,10 @@ public class SchoolPlayer
 		if (toExit.get(toExit.size() - 2).getType() == BoxType.Door)		// If next space is a door, open it
 			return Action.Use;
 
-		Point a = toExit.get(toExit.size() - 1).getPoint();
+		Point a = toExit.get(toExit.size() - 1).getPoint();		// The two points
 		Point b = toExit.get(toExit.size() - 2).getPoint();
 
+		// Find the direction between them
 		if (b.y - 1 == a.y)
 			return Action.North;
 		if (b.y + 1 == a.y)
@@ -312,7 +314,7 @@ class FieldMap
 
 	/**
 	 * If a space already exists, verify that it is correct.
-	 * If it doesn't, add it and link it to surrounding nodes.
+	 * If it doesn't, add it
 	 * 
 	 * @throws RuntimeException If the space already exists and the previous type contrasts with the new one
 	 * 
@@ -342,12 +344,6 @@ class FieldMap
 
 			Space sp = new Space(x, y, type);		// add the new space
 			map.put(p, sp);
-
-			// link the space to its surroundings
-			//			Point n = new Point(x, y + 1);
-			//			Point s = new Point(x, y - 1);
-			//			Point e = new Point(x + 1, y);
-			//			Point w = new Point(x - 1, y);
 
 			return sp;
 		}
@@ -396,27 +392,28 @@ class FieldMap
 		Space sp;
 
 		// Look around us and open any doors (there should theoretically only be 1)
-		//		p = new Point(location.x, location.y + 1);
+
+		// North
 		p.x = location.x;
 		p.y = location.y + 1;
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
-		//		p = new Point(location.x, location.y - 1);
+		// South
 		p.x = location.x;
 		p.y = location.y - 1;
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
+		// East
 		p.x = location.x + 1;
 		p.y = location.y;
-		//		p = new Point(location.x + 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
+		// West
 		p.x = location.x - 1;
 		p.y = location.y;
-		//		p = new Point(location.x - 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 	}
@@ -466,13 +463,16 @@ class Space
 	private final int x;
 	private final int y;
 
+	// Just a Point representation of (x,y) for quick access
 	private final Point point;
 
-	private int length;
-	private boolean removed = false;
-	private Space previous = null;
-
+	// True if this Space is representing all spaces we haven't been to yet 
 	private boolean unexplored = false;
+
+	// == Dijkstra's algorithm Variables == //
+	private int length;						// The distance of this Space from root
+	private boolean removed = false;		// Whether or not this space has been removed
+	private Space previous = null;			// The previous space on the chain back to root
 
 	/**
 	 * Creates a space
@@ -497,39 +497,6 @@ class Space
 	{
 		return type;
 	}
-
-	/**
-	 * Finds the difficulty of traversing this node
-	 * @param t Our end goal when using this in Dijkstra's algorithm.
-	 * 			Just for error checking - you can safely set this to null if this space is not a door.
-	 * @param keys Number of keys we have.
-	 * @throws RuntimeException If this space is a door and t is not a door (ie we are not looking for one)
-	 * @return The difficulty of traversing the node.
-	 */
-	//	public int difficulty(BoxType t, Space goal, int keys)
-	//	{
-	//		if (type == null)
-	//			return 1;
-	//		
-	//		switch (type)
-	//		{
-	//		case Blocked:
-	//			return Integer.MAX_VALUE;
-	//
-	//		case Door:
-	//			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
-	//				return 1; // if we are looking for a door then give it a weight of one
-	//			else
-	//				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
-	//
-	//		case Key:
-	//		case Exit:
-	//		case Open:
-	//			return 1;
-	//		}
-	//
-	//		throw new RuntimeException("This should not be possible");
-	//	}
 
 	/**
 	 * Sets the type of this space.
@@ -565,7 +532,7 @@ class Space
 	 */
 	public Point getPoint()
 	{
-		return point;//new Point(x, y);
+		return point;
 	}
 
 	@Override
@@ -708,8 +675,8 @@ class Dijkstras
 		// This uses a brute force to try to find the very most ideal path
 		try
 		{
+			// Check to see if we even know about the existence of an exit
 			boolean hasExit = false;
-
 			for (Space s : map.values())
 			{
 				if (s.getType() == BoxType.Exit)
@@ -719,6 +686,7 @@ class Dijkstras
 				}
 			}
 
+			// If we know about an exit, try to find the best path to it
 			if (hasExit)
 			{
 
@@ -729,7 +697,8 @@ class Dijkstras
 		} catch (Throwable e)
 		{
 			// If the brute force algorithm fails (unexpectedly) then fall back on this algorithm
-			e.printStackTrace();
+			if (SchoolPlayer.VERBOSE)
+				e.printStackTrace();
 		}
 
 		// If standing on key, grab it
@@ -751,18 +720,9 @@ class Dijkstras
 		}
 
 		// == Find shortest path to an unexplored area ==
-		List<Stack<Space>> possiblePaths = new ArrayList<>();		// Possible paths to unexplored
+		Stack<Space> toUnknown = new BruteForcePathfinder(keys, location, map, Integer.MAX_VALUE).toType(null);
 
-		// Add the shortest path to unexplored not including doors
-		Stack<Space> toUnknown = new BruteForcePathfinder(keys, location, map, Integer.MAX_VALUE).toType(null);//shortestToType(location, null, null);
-		if (toUnknown != null)
-			possiblePaths.add(toUnknown);
-
-		// Find the shortest path to the unexplored areas now
-
-		Stack<Space> min;
-		Iterator<Stack<Space>> itr = possiblePaths.iterator();
-		if (!itr.hasNext())
+		if (toUnknown == null)
 		{
 			String s = "This map is seemingly impossible to solve in the current state.\n" +
 					"We've explored all unexplored areas and used all available key+door combinations.\n" +
@@ -772,16 +732,7 @@ class Dijkstras
 			throw new RuntimeException(s);
 		}
 
-		min = itr.next();
-		while (itr.hasNext())
-		{
-			Stack<Space> next = itr.next();
-
-			if (next.size() < min.size())
-				min = next;
-		}
-
-		return min;		// Return the shortest path
+		return toUnknown;		// Return the shortest path
 	}
 
 	/**
