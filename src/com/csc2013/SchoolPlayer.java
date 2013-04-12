@@ -1,6 +1,7 @@
 package com.csc2013;
 
 import java.awt.Point;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -92,8 +93,8 @@ public class SchoolPlayer
 			map.applyOpenDoor();
 			break;
 		}
-		
-//		System.out.println(action);
+
+		//		System.out.println(action);
 
 		return action;
 	}
@@ -309,10 +310,10 @@ class FieldMap
 			map.put(p, sp);
 
 			// link the space to its surroundings
-//			Point n = new Point(x, y + 1);
-//			Point s = new Point(x, y - 1);
-//			Point e = new Point(x + 1, y);
-//			Point w = new Point(x - 1, y);
+			//			Point n = new Point(x, y + 1);
+			//			Point s = new Point(x, y - 1);
+			//			Point e = new Point(x + 1, y);
+			//			Point w = new Point(x - 1, y);
 
 			return sp;
 		}
@@ -361,27 +362,27 @@ class FieldMap
 		Space sp;
 
 		// Look around us and open any doors (there should theoretically only be 1)
-//		p = new Point(location.x, location.y + 1);
+		//		p = new Point(location.x, location.y + 1);
 		p.x = location.x;
-		p.y = location.y+1;
+		p.y = location.y + 1;
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
-//		p = new Point(location.x, location.y - 1);
+		//		p = new Point(location.x, location.y - 1);
 		p.x = location.x;
-		p.y = location.y-1;
+		p.y = location.y - 1;
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
-		p.x = location.x+1;
+		p.x = location.x + 1;
 		p.y = location.y;
-//		p = new Point(location.x + 1, location.y);
+		//		p = new Point(location.x + 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 
-		p.x = location.x-1;
+		p.x = location.x - 1;
 		p.y = location.y;
-//		p = new Point(location.x - 1, location.y);
+		//		p = new Point(location.x - 1, location.y);
 		if (map.containsKey(p) && (sp = map.get(p)).getType() == BoxType.Door)
 			sp.setType(BoxType.Open);
 	}
@@ -430,13 +431,13 @@ class Space
 	// The (x,y) coordinate of this space
 	private final int x;
 	private final int y;
-	
+
 	private final Point point;
-	
+
 	private int length;
 	private boolean removed = false;
 	private Space previous = null;
-	
+
 	private boolean unexplored = false;
 
 	/**
@@ -450,7 +451,7 @@ class Space
 		this.x = x;
 		this.y = y;
 		this.type = type;
-		
+
 		point = new Point(x, y);
 	}
 
@@ -471,31 +472,30 @@ class Space
 	 * @throws RuntimeException If this space is a door and t is not a door (ie we are not looking for one)
 	 * @return The difficulty of traversing the node.
 	 */
-//	public int difficulty(BoxType t, Space goal, int keys)
-//	{
-//		if (type == null)
-//			return 1;
-//		
-//		switch (type)
-//		{
-//		case Blocked:
-//			return Integer.MAX_VALUE;
-//
-//		case Door:
-//			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
-//				return 1; // if we are looking for a door then give it a weight of one
-//			else
-//				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
-//
-//		case Key:
-//		case Exit:
-//		case Open:
-//			return 1;
-//		}
-//
-//		throw new RuntimeException("This should not be possible");
-//	}
-
+	//	public int difficulty(BoxType t, Space goal, int keys)
+	//	{
+	//		if (type == null)
+	//			return 1;
+	//		
+	//		switch (type)
+	//		{
+	//		case Blocked:
+	//			return Integer.MAX_VALUE;
+	//
+	//		case Door:
+	//			if (t == BoxType.Door || (goal != null && goal.getType() == BoxType.Door))
+	//				return 1; // if we are looking for a door then give it a weight of one
+	//			else
+	//				throw new RuntimeException("We shouldn't be asking for the difficulty of a door if we are not searching for one.");
+	//
+	//		case Key:
+	//		case Exit:
+	//		case Open:
+	//			return 1;
+	//		}
+	//
+	//		throw new RuntimeException("This should not be possible");
+	//	}
 
 	/**
 	 * Sets the type of this space.
@@ -506,7 +506,6 @@ class Space
 	{
 		this.type = type;
 	}
-
 
 	/**
 	 * Gets the X coordinate of the space
@@ -775,7 +774,7 @@ class Dijkstras
 	{
 		return shortestToType(start, null, goal);
 	}
-	
+
 	static Space unexp;
 	static
 	{
@@ -785,10 +784,10 @@ class Dijkstras
 	}
 
 	static final Point INFI = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
-	
+
 	static long A = 0;
 	static long B = 0;
-	
+
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
 	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
@@ -805,20 +804,20 @@ class Dijkstras
 		// TODO: Improve the speed of this function. This is where the majority of the time is spent.
 		if (!map.containsKey(INFI))
 			map.put(INFI, unexp);
-		
-//		System.out.println("Goal: "+goal+" "+type);
-		
+
+		//		System.out.println("Goal: "+goal+" "+type);
+
 		List<Space> unremoved = new ArrayList<>();
 		List<Space> removed = new ArrayList<>();
-		
+
 		for (Space k : map.values())
 		{
 			if (k.getType() != BoxType.Blocked)
 				unremoved.add(k);
 		}
-		
+
 		reset(start, unremoved);
-		
+
 		while (true)
 		{
 			long t = System.currentTimeMillis();
@@ -830,28 +829,28 @@ class Dijkstras
 						|| (goal == null && sw.isUnexplored() && type == null)				// If we found the type goal (for unexplored)
 				)
 				{
-//					if (sw.isRemoved())		// And we've found the shortest possible path to it
+					//					if (sw.isRemoved())		// And we've found the shortest possible path to it
 					{
-//						System.out.println("GOT HERE");
+						//						System.out.println("GOT HERE");
 						// Generate a stack of the path and return it
 						// This is based on the backward linking of one node in the path to the next
 						Stack<Space> fullPath = new Stack<>();
-						
-//						SpaceWrapper path = sw;
+
+						//						SpaceWrapper path = sw;
 						Space path = sw;
 						do
 						{
-//							System.out.println(path);
+							//							System.out.println(path);
 							fullPath.push(path);
 							path = path.getPrevious();
 
 						} while (path != null);
-						
+
 						if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path. Otherwise we've got a dud.
 							return null;
 
-//						System.out.println("Found path");
-						
+						//						System.out.println("Found path");
+
 						return fullPath;
 					}
 				}
@@ -861,7 +860,6 @@ class Dijkstras
 
 			// Choose the vertex with the least distance
 			Space min = min(unremoved);
-			
 
 			if (min == null) // No possible path to our goal
 				return null;
@@ -870,7 +868,7 @@ class Dijkstras
 			removed.add(min);
 			unremoved.remove(min);
 
-//			System.out.println(min);
+			//			System.out.println(min);
 			if (min != null)
 			{
 				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
@@ -878,7 +876,7 @@ class Dijkstras
 				{
 					if (sp.isRemoved())			// Ignore the item if we've already visited it
 						continue;
-					
+
 					if ((sp.isUnexplored()) && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
 						continue;
 
@@ -895,7 +893,7 @@ class Dijkstras
 					}
 				}
 			}
-			
+
 			B += System.currentTimeMillis() - t;
 			// Time for another iteration of the while loop....
 		}
@@ -916,11 +914,11 @@ class Dijkstras
 		while (itr.hasNext())
 		{
 			Space next = itr.next();
-			
+
 			if (next.getType() == BoxType.Blocked)
 				continue;
-			
-//			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
+
+			//			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
 			{
 				if (shortest == null || shortest.getLength() > next.getLength())
 					shortest = next;
@@ -928,8 +926,8 @@ class Dijkstras
 					shortest = next;
 			}
 		}
-		
-//		System.out.println(collection);
+
+		//		System.out.println(collection);
 
 		if (shortest == null || shortest.getLength() == Integer.MAX_VALUE)		// The 'shortest' path is impossible to get to.
 		{
@@ -953,37 +951,37 @@ class Dijkstras
 	 * @param parts 
 	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
 	 */
-//	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
-//	{
-//		HashMap<Space, SpaceWrapper> result = new HashMap<>();
-//
-//		// Add the null value (indicates unknown region)
-//		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
-//
-//		// Add all the other values
-//		for (Space sp : spaces)
-//		{
-//			int dist = Integer.MAX_VALUE;
-//			if (sp.getPoint().equals(start))
-//				dist = 0;
-//
-//			result.put(sp, new SpaceWrapper(dist, sp));
-//		}
-//
-//		return result;
-//	}
-	
+	//	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
+	//	{
+	//		HashMap<Space, SpaceWrapper> result = new HashMap<>();
+	//
+	//		// Add the null value (indicates unknown region)
+	//		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
+	//
+	//		// Add all the other values
+	//		for (Space sp : spaces)
+	//		{
+	//			int dist = Integer.MAX_VALUE;
+	//			if (sp.getPoint().equals(start))
+	//				dist = 0;
+	//
+	//			result.put(sp, new SpaceWrapper(dist, sp));
+	//		}
+	//
+	//		return result;
+	//	}
+
 	private void reset(Point start, List<Space> parts)
 	{
 		for (Space s : parts)
 		{
 			if (s == null)
 				continue;
-			
+
 			int dist = Integer.MAX_VALUE;
 			if (s.getPoint().equals(start))
 				dist = 0;
-			
+
 			s.setLength(dist);
 			s.setRemoved(false);
 			s.setPrevious(null);
@@ -1161,7 +1159,7 @@ class BruteForcePathfinder
 	 */
 	public Stack<Space> toType(BoxType type)
 	{
-		System.out.println("Goal: "+type);
+		System.out.println("Goal: " + type);
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
 
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
@@ -1170,11 +1168,48 @@ class BruteForcePathfinder
 
 		int shortest = Math.min(bestCase, Tournament.maxSteps);
 
+		boolean checkForDups = true;
+
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
 		{
+			System.out.println("=== STARTING ITERATION ===");
+			// Check for duplicates
+			if (checkForDups)
+			{
+				System.out.println("Checking for duplicates...");
+				List<Path> dups = new ArrayList<>();
+				for (int i = 0; i < paths.size(); i++)
+				{
+					Path p = paths.get(i);
+					List<Space> pPath = p.getPath();
+
+					for (int j = i + 1; j < paths.size(); j++)
+					{
+						Path q = paths.get(j);
+
+						if (q.getPathSize() != p.getPathSize())
+							continue;
+
+						List<Space> qPath = q.getPath();
+
+						if (Path.pathsEqual(qPath, pPath))
+						{
+							dups.add(q);
+						}
+					}
+				}
+
+				if (dups.size() == 0)
+					checkForDups = false;		// Waste of time to search in future iterations
+
+				paths.removeAll(dups);
+				System.out.println("Finished Checking. Removed [" + dups.size() + "]");
+			}
+
 			// PART 1: For each path, see if there is a way to get to the goal without going through doors
 			// If there is, add the path to the solved list.
+			System.out.println("Looking for exit paths...");
 			Iterator<Path> itr = paths.iterator();
 			while (itr.hasNext())
 			{
@@ -1193,11 +1228,14 @@ class BruteForcePathfinder
 						shortest = p.getPathSize();
 				}
 			}
-			
-			System.out.println(solved.size() + " " + shortest+" "+paths.size());
+			System.out.println("Solved: " + solved.size());
+			System.out.println("Shortest: " + shortest);
+			System.out.println("Paths: " + paths.size());
+			System.out.println();
 
 			// PART 2: For each path, find all possible reasonable paths to keys
 
+			System.out.println("Looking for paths to keys...");
 			List<Path> tempPaths = new ArrayList<>();
 
 			itr = paths.iterator();
@@ -1219,7 +1257,7 @@ class BruteForcePathfinder
 				while (true)
 				{
 					k = new Dijkstras(temp.getKeys(), temp.getLocation(), temp.getMap(), -1);
-					
+
 					Stack<Space> toKey = k.shortestToType(temp.getLocation(), BoxType.Key);
 					if (toKey == null)
 						break;
@@ -1231,9 +1269,9 @@ class BruteForcePathfinder
 				}
 
 				// Copy the queue so we can poll from one and then access the data later 
-//				Queue<Space> keysCopy = new LinkedList<>();
-//				for (Space key : keys)
-//					keysCopy.add(key);
+				//				Queue<Space> keysCopy = new LinkedList<>();
+				//				for (Space key : keys)
+				//					keysCopy.add(key);
 
 				if (keys.size() == 0 && p.getKeys() == 0)		// There are no more keys to get and we're out of keys. Kill the potential path.
 				{
@@ -1283,7 +1321,7 @@ class BruteForcePathfinder
 
 					keyLists.add(curr);		// Add the current direction to the list of directions
 				}
-				
+
 				keys = null;
 
 				// Iterates through each of the directions and then finds the possible paths in each of those directions
@@ -1323,6 +1361,8 @@ class BruteForcePathfinder
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
+			System.out.println("Added key paths. Total paths: " + paths.size());
+			System.out.println("Looking for paths to doors....");
 
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = new ArrayList<>();
@@ -1368,6 +1408,7 @@ class BruteForcePathfinder
 			paths.addAll(tempPaths);		// To avoid ConcurrentModificationException
 
 			tempPaths = new ArrayList<>();
+			System.out.println("Found paths to doors. Total paths: " + paths.size());
 		}
 
 		// END: Find the shortest path so far
@@ -1406,13 +1447,13 @@ class BruteForcePathfinder
 class Path
 {
 	private static final MemoryCounter mc = new MemoryCounter();
-	
+
 	private HashMap<Point, Space> map;			// The current state of the map in this path
 	private int keys;							// The number of keys the player has
 	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
-//	private Dijkstras dijkstras;
+	//	private Dijkstras dijkstras;
 	private int pathSize = 0;
-	
+
 	private Path previous;
 
 	/**
@@ -1427,13 +1468,28 @@ class Path
 
 		map = new HashMap<>();
 		load2(newMap);
-//		load(newMap);			// Clone the map
+		//		load(newMap);			// Clone the map
 
 		path = new ArrayList<>();
-//		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
+		//		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
 		path.add(map.get(location));
-		
-//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+
+		//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+	}
+
+	public static boolean pathsEqual(List<Space> qPath, List<Space> pPath)
+	{
+		// Unnecessary b/c we do the calculation already
+		//		if (qPath.size() != pPath.size())
+		//			return false;
+
+		for (int i = qPath.size() - 1; i >= 0; i--)
+		{
+			if (!qPath.get(i).equals(pPath.get(i)))
+				return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -1448,15 +1504,15 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		
-		this.path = new ArrayList<>();
-//		load2(newMap);
-//		load(newMap);			// clone the map
 
-//		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
-		
-//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
-		
+		this.path = new ArrayList<>();
+		//		load2(newMap);
+		//		load(newMap);			// clone the map
+
+		//		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
+
+		//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+
 		this.previous = previous;
 		this.pathSize = previous.pathSize;
 	}
@@ -1482,7 +1538,7 @@ class Path
 	{
 		proceed = (Stack<Space>) proceed.clone();
 		// Don't put on the first element of the path if it matches the last element of our current list
-		
+
 		List<Space> temp = getPath();		// TODO: Unslow
 		if (proceed.peek().equals(temp.get(temp.size() - 1)))
 			proceed.pop();
@@ -1510,13 +1566,13 @@ class Path
 				pruneKeys();
 
 				keys--;
-//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
+				//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
 				cloneSpaceToMap(next).setType(BoxType.Open);
 				break;
 
 			case Key:
 				keys++;
-//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
+				//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
 				cloneSpaceToMap(next).setType(BoxType.Open);
 				break;
 
@@ -1524,7 +1580,7 @@ class Path
 				break;
 			}
 
-//			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
+			//			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
 			path.add(next);
 			pathSize++;
 		}
@@ -1549,7 +1605,7 @@ class Path
 		}
 
 	}
-	
+
 	private Space cloneSpaceToMap(Space me)
 	{
 		Point p = me.getPoint();
@@ -1562,12 +1618,11 @@ class Path
 
 		// link space to surroundings
 
-//		Point n = new Point(x, y + 1);
-//		Point s = new Point(x, y - 1);
-//		Point e = new Point(x + 1, y);
-//		Point w = new Point(x - 1, y);
+		//		Point n = new Point(x, y + 1);
+		//		Point s = new Point(x, y - 1);
+		//		Point e = new Point(x + 1, y);
+		//		Point w = new Point(x - 1, y);
 
-		
 		return sp;
 	}
 
@@ -1608,20 +1663,21 @@ class Path
 	public HashMap<Point, Space> getMap()
 	{
 		HashMap<Point, Space> temp = new HashMap<>();
-//		temp.putAll(map);
-		
+		//		temp.putAll(map);
+
 		Path p = this;
-		do {
-//			temp.putAll(p.map);
+		do
+		{
+			//			temp.putAll(p.map);
 			for (Space s : p.map.values())
 			{
 				if (!temp.containsKey(s.getPoint()))
 					temp.put(s.getPoint(), s);
 			}
-			
+
 			p = p.previous;
 		} while (p != null);
-		
+
 		return temp;
 	}
 
@@ -1632,7 +1688,7 @@ class Path
 	public Point getLocation()
 	{
 		List<Space> temp = getPath();		// TODO: Unslow
-		
+
 		return temp.get(temp.size() - 1).getPoint();
 	}
 
@@ -1643,21 +1699,21 @@ class Path
 	public List<Space> getPath()
 	{
 		Stack<Path> backward = new Stack<>();
-		
+
 		Path p = this;
-		
+
 		do
 		{
 			backward.add(p);
-			
+
 			p = p.previous;
 		} while (p != null);
-		
+
 		List<Space> result = new ArrayList<>();
-		
+
 		while (!backward.isEmpty())
 			result.addAll(backward.pop().path);
-		
+
 		return result;
 	}
 
@@ -1670,6 +1726,11 @@ class Path
 	public int getPathSize()
 	{
 		return pathSize;
+	}
+
+	public Path getPrevious()
+	{
+		return previous;
 	}
 }
 
@@ -1728,24 +1789,23 @@ class LearningTracker
 	}
 }
 
-
 class MapUtils
 {
 	public static List<Space> findSurroundingSpaces(HashMap<Point, Space> map, Space sp, Space unexp)
 	{
 		List<Space> result = new ArrayList<>();
-		
+
 		Point p = sp.getPoint();
-		
+
 		Point n = new Point(p.x, p.y + 1);
 		Point s = new Point(p.x, p.y - 1);
 		Point e = new Point(p.x + 1, p.y);
 		Point w = new Point(p.x - 1, p.y);
-		
+
 		Point g;
-		
+
 		boolean u = false;
-		
+
 		g = n;
 		if (map.containsKey(g))
 		{
@@ -1758,7 +1818,7 @@ class MapUtils
 			result.add(unexp);
 			u = true;
 		}
-		
+
 		g = s;
 		if (map.containsKey(g))
 		{
@@ -1771,7 +1831,7 @@ class MapUtils
 			result.add(unexp);
 			u = true;
 		}
-		
+
 		g = e;
 		if (map.containsKey(g))
 		{
@@ -1784,7 +1844,7 @@ class MapUtils
 			result.add(unexp);
 			u = true;
 		}
-		
+
 		g = w;
 		if (map.containsKey(g))
 		{
@@ -1797,8 +1857,7 @@ class MapUtils
 			result.add(unexp);
 			u = true;
 		}
-		
-		
+
 		return result;
 	}
 }
