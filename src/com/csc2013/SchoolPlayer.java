@@ -847,9 +847,6 @@ class Dijkstras
 
 						} while (path != null);
 						
-						System.out.println("A: "+A);
-						System.out.println("B: "+B);
-						
 						if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path. Otherwise we've got a dud.
 							return null;
 
