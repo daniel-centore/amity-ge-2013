@@ -573,46 +573,77 @@ class Space
 		return true;
 	}
 
+	/**
+	 * Finds the current distance of the space from root
+	 * @return  The length
+	 */
 	public int getLength()
 	{
 		return length;
 	}
 
+	/**
+	 * Sets the current distance of the space from root
+	 * @param length The length
+	 */
 	public void setLength(int length)
 	{
 		this.length = length;
 	}
 
+	/**
+	 * Checks if the space has been visited/removed from the graph
+	 * @return True if it has been removed; False otherwise
+	 */
 	public boolean isRemoved()
 	{
 		return removed;
 	}
-
+	
+	/**
+	 * Sets if the space has been visited/removed from the graph
+	 * @param removed True if it has been removed; False otherwise
+	 */
 	public void setRemoved(boolean removed)
 	{
 		this.removed = removed;
 	}
 
+	/**
+	 * Gets the previous space on the chain back to the root node
+	 * @return The previous space or null if this is root
+	 */
 	public Space getPrevious()
 	{
 		return previous;
 	}
 
+	/**
+	 * Sets the previous space on the chain back to root
+	 * @param previous The space to set it to
+	 */
 	public void setPrevious(Space previous)
 	{
 		this.previous = previous;
 	}
 
+	/**
+	 * Is this space a marker for unexplored territory?
+	 * @return True if it is; False otherwise
+	 */
 	public boolean isUnexplored()
 	{
 		return unexplored;
 	}
 
+	/**
+	 * Sets whether or not this space is a marker for unexplored territory
+	 * @param unexplored True if it is; False otherwise
+	 */
 	public void setUnexplored(boolean unexplored)
 	{
 		this.unexplored = unexplored;
 	}
-
 }
 
 /**
