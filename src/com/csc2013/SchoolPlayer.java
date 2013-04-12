@@ -1200,7 +1200,7 @@ class BruteForcePathfinder
 					}
 				}
 
-				if (dups.size() == 0)
+				if (dups.size() < 10 && paths.size() > 5000)
 					checkForDups = false;		// Waste of time to search in future iterations
 
 				paths.removeAll(dups);
