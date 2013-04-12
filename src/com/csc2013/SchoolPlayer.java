@@ -638,6 +638,17 @@ class Dijkstras
 	private HashMap<Point, Space> map;			// The player's current map
 	private int bestCase;						// The best case the player has encountered in this map
 
+	// The space that represents somewhere we haven't been to yet
+	private static final Space UNEXP;
+	static
+	{
+		UNEXP = new Space(Integer.MAX_VALUE, Integer.MAX_VALUE, null);
+		UNEXP.setUnexplored(true);
+		UNEXP.setLength(Integer.MAX_VALUE);
+	}
+	// The location to go along with that space
+	private static final Point INFI = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
 	/**
 	 * Creates an instance of the Dijkstra's algorithm solver
 	 * @param keys Number of keys the player has
@@ -758,19 +769,6 @@ class Dijkstras
 		return shortestToType(start, null, goal);
 	}
 
-	static Space unexp;
-	static
-	{
-		unexp = new Space(Integer.MAX_VALUE, Integer.MAX_VALUE, null);
-		unexp.setUnexplored(true);
-		unexp.setLength(Integer.MAX_VALUE);
-	}
-
-	static final Point INFI = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
-
-	static long A = 0;
-	static long B = 0;
-
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
 	 * The goal can be either a certain type of space (like unexplored, door, key) or to a specific space (like 2,5)
@@ -784,88 +782,79 @@ class Dijkstras
 	 */
 	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
-		if (!map.containsKey(INFI))
-			map.put(INFI, unexp);
+		if (!map.containsKey(INFI))		// Add unknown as a possible goal
+			map.put(INFI, UNEXP);
 
-		//		System.out.println("Goal: "+goal+" "+type);
+		List<Space> unremoved = new ArrayList<>();		// All spaces that have not been visited by Dijkstra's
+		List<Space> removed = new ArrayList<>();		// All spaces that have been visited
 
-		List<Space> unremoved = new ArrayList<>();
-		List<Space> removed = new ArrayList<>();
-
+		// Add all non-blocked spaces to the algorithm list
 		for (Space k : map.values())
 		{
 			if (k.getType() != BoxType.Blocked)
 				unremoved.add(k);
 		}
 
+		// Clear out the pathfinding data in those nodes
 		reset(start, unremoved);
 
 		while (true)
 		{
-			long t = System.currentTimeMillis();
 			// Is the goal still in the graph?
 			for (Space sw : removed)
 			{
 				if ((goal != null && !sw.isUnexplored() && sw.equals(goal))				// If we found the Space goal, or
 						|| (goal == null && !sw.isUnexplored() && sw.getType() == type)	// If we found the type goal,  or
-						|| (goal == null && sw.isUnexplored() && type == null)				// If we found the type goal (for unexplored)
+						|| (goal == null && sw.isUnexplored() && type == null)			// If we found the type goal (for unexplored)
 				)
 				{
-					//					if (sw.isRemoved())		// And we've found the shortest possible path to it
+					// Generate a stack of the path and return it
+					// This is based on the backward linking of one node in the path to the next
+					Stack<Space> fullPath = new Stack<>();
+
+					Space path = sw;
+					do
 					{
-						//						System.out.println("GOT HERE");
-						// Generate a stack of the path and return it
-						// This is based on the backward linking of one node in the path to the next
-						Stack<Space> fullPath = new Stack<>();
+						fullPath.push(path);
+						path = path.getPrevious();
 
-						//						SpaceWrapper path = sw;
-						Space path = sw;
-						do
-						{
-							//							System.out.println(path);
-							fullPath.push(path);
-							path = path.getPrevious();
+					} while (path != null);
 
-						} while (path != null);
+					if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path, otherwise we've got a dud.
+						return null;
 
-						if (fullPath.size() <= 1) // Need to be at least 2 elements to be a path. Otherwise we've got a dud.
-							return null;
-
-						//						System.out.println("Found path");
-
-						return fullPath;
-					}
+					return fullPath;
 				}
 			}
-			A += System.currentTimeMillis() - t;
-			t = System.currentTimeMillis();
 
 			// Choose the vertex with the least distance
 			Space min = min(unremoved);
 
-			if (min == null) // No possible path to our goal
+			if (min == null) 	// No possible path to our goal
 				return null;
 
-			min.setRemoved(true);			// Remove it from the graph (or "mark it as visited")
+			// Remove it from the graph (or "mark it as visited")
+			min.setRemoved(true);
 			removed.add(min);
 			unremoved.remove(min);
 
-			//			System.out.println(min);
 			if (min != null)
 			{
 				// Calculate distances between the vertex with the smallest distance and neighbors still in the graph
-				for (Space sp : MapUtils.findSurroundingSpaces(map, min, unexp))//min.getSpace().getSurrounding())
+				for (Space sp : MapUtils.findSurroundingSpaces(map, min, UNEXP))
 				{
 					if (sp.isRemoved())			// Ignore the item if we've already visited it
 						continue;
 
-					if ((sp.isUnexplored()) && (type != null || goal != null)) // Ignore null spaces unless we are actually looking for unexplored areas
+					// Ignore null spaces unless we are actually looking for unexplored areas
+					if ((sp.isUnexplored()) && (type != null || goal != null))
 						continue;
 
-					if (sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))		// Don't include doors if we are not looking for a door
+					// Don't include doors if we are not looking for a door
+					if (sp.getType() == BoxType.Door && type != BoxType.Door && !sp.equals(goal))
 						continue;
 
-					int length = min.getLength() + 1; // Difficulty for getting anywhere is 1
+					int length = min.getLength() + 1; 		// Difficulty for getting anywhere is 1
 
 					// If this is the shortest path to the node so far, label it as such.
 					if (length < sp.getLength())
@@ -876,17 +865,15 @@ class Dijkstras
 				}
 			}
 
-			B += System.currentTimeMillis() - t;
 			// Time for another iteration of the while loop....
 		}
 	}
 
 	/**
-	 * Find the element in the {@link SpaceWrapper} with the shortest length.
-	 * Only includes nodes still in the graph (ie those we haven't visited yet)
+	 * Find the element in the collection with the shortest length.
 	 * 
-	 * @param collection The {@link Collection} of {@link SpaceWrapper}s
-	 * @return The {@link SpaceWrapper} with the smallest value.
+	 * @param collection The {@link Collection} of nodes
+	 * @return The {@link Space} with the smallest value.
 	 */
 	private Space min(Collection<Space> collection)
 	{
@@ -897,19 +884,11 @@ class Dijkstras
 		{
 			Space next = itr.next();
 
-			if (next.getType() == BoxType.Blocked)
-				continue;
-
-			//			if (!next.isRemoved())		// Only count spaces that have not been removed from the graph
-			{
-				if (shortest == null || shortest.getLength() > next.getLength())
-					shortest = next;
-				else if (shortest.getLength() == next.getLength())		// If they are equal randomly pick one
-					shortest = next;
-			}
+			if (shortest == null || shortest.getLength() > next.getLength())
+				shortest = next;
+			else if (shortest.getLength() == next.getLength())
+				shortest = next;
 		}
-
-		//		System.out.println(collection);
 
 		if (shortest == null || shortest.getLength() == Integer.MAX_VALUE)		// The 'shortest' path is impossible to get to.
 		{
@@ -920,39 +899,10 @@ class Dijkstras
 	}
 
 	/**
-	 * Wraps a {@link List} of {@link Space}s in {@link SpaceWrapper}s and spits them out as a {@link HashMap}
-	 * 	where the key is the {@link Space} and the value the {@link SpaceWrapper}.
-	 * 
-	 * This {@link HashMap} includes one Key,Value combination which are null,SpaceWrapper(space=null) to symbolize
-	 * 	all unexplored territory
-	 * 
-	 * Sets the length of each of these to infinity (Ineteger.MAX_VALUE) except for the start node which is 0.
-	 * 
-	 * @param spaces The {@link List} of {@link Space}s
-	 * @param start	The start node whose distance we set to 0.
-	 * @param parts 
-	 * @return The {@link HashMap} of {@link Space},{@link SpaceWrapper}
+	 * Resets all the {@link Space}s in terms of the temporary pathfinding variables
+	 * @param start The point which will have an initial length of 0 for this algorithm run
+	 * @param parts The {@link List} to go through
 	 */
-	//	public HashMap<Space, SpaceWrapper> wrap(List<Space> spaces, Point start)
-	//	{
-	//		HashMap<Space, SpaceWrapper> result = new HashMap<>();
-	//
-	//		// Add the null value (indicates unknown region)
-	//		result.put(null, new SpaceWrapper(Integer.MAX_VALUE, null));
-	//
-	//		// Add all the other values
-	//		for (Space sp : spaces)
-	//		{
-	//			int dist = Integer.MAX_VALUE;
-	//			if (sp.getPoint().equals(start))
-	//				dist = 0;
-	//
-	//			result.put(sp, new SpaceWrapper(dist, sp));
-	//		}
-	//
-	//		return result;
-	//	}
-
 	private void reset(Point start, List<Space> parts)
 	{
 		for (Space s : parts)
@@ -988,110 +938,6 @@ class Dijkstras
 		return result;
 	}
 
-	public void setKeys(int keys)
-	{
-		this.keys = keys;
-	}
-
-}
-
-/**
- * Wraps a {@link Space} in a node for use in Dijkstra's algorithm.
- * This allows us to run multiple distance calculations on the same {@link Space}s without worrying about corruption
- * 	between them because each calculation uses new {@link SpaceWrapper}s
- * 
- * @author Daniel Centore
- *
- */
-class SpaceWrapper
-{
-	// The previous element in the chain (or null if this is root or hasn't been set yet)
-	private SpaceWrapper previous;
-
-	private int length;			// Total distance of this node from the root one
-	private Space space;		// The space we are actually referencing
-	private boolean removed;	// Set to true to signify "removal" from the graph (sometimes called "visited" in Dijkstra's)
-
-	/**
-	 * Creates a new wrapper.
-	 * @param length Initial distance. Usually 0 for root and Integer.MAX_VALUE (ie "infinity") for all others
-	 * @param space The {@link Space} we are wrapping
-	 */
-	public SpaceWrapper(int length, Space space)
-	{
-		this.length = length;
-		this.space = space;
-		this.removed = false;
-	}
-
-	/**
-	 * Gets the distance of this node from the root node
-	 * @return The distance
-	 */
-	public int getLength()
-	{
-		return length;
-	}
-
-	/**
-	 * Sets the distance of this node from the root one
-	 * @param length The distance to set it to
-	 */
-	public void setLength(int length)
-	{
-		this.length = length;
-	}
-
-	/**
-	 * Gets the space we are wrapping
-	 * @return The space we are wrapping
-	 */
-	public Space getSpace()
-	{
-		return space;
-	}
-
-	/**
-	 * Checks if this node has been removed from the graph
-	 * @return True if it has been removed; False otherwise
-	 */
-	public boolean isRemoved()
-	{
-		return removed;
-	}
-
-	/**
-	 * Set whether or not this node has been removed from the graph
-	 * @param removed Set to true if it has; False otherwise
-	 */
-	public void setRemoved(boolean removed)
-	{
-		this.removed = removed;
-	}
-
-	/**
-	 * Gets the node before this one on the path to the end
-	 * @return The {@link SpaceWrapper} before this one
-	 */
-	public SpaceWrapper getPrevious()
-	{
-		return previous;
-	}
-
-	/**
-	 * Sets the node before this one on the path to the end
-	 * @param previous The {@link SpaceWrapper} before this one
-	 */
-	public void setPrevious(SpaceWrapper previous)
-	{
-		this.previous = previous;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "SpaceWrapper [space=" + space + "]";
-	}
 }
 
 /**
@@ -1114,6 +960,11 @@ class SpaceWrapper
  */
 class BruteForcePathfinder
 {
+	// The algorithm is first run cutting off all paths that get longer than 100 moves.
+	// If it failed to solve the map it is increased to 200, then 300, and so on.
+	// This is so we don't end up with massive amounts of time going into solving very long paths.
+	private static final int SMALLEST_DELTA = 100;
+
 	private int currentKeys;					// How many keys we have right now
 	private Point currentLocation;				// Our actual current location
 	private HashMap<Point, Space> currentMap;	// Our actual current map
@@ -1134,12 +985,18 @@ class BruteForcePathfinder
 		this.bestCase = bestCase;
 	}
 
+	/**
+	 * Finds the shortest path to a {@link BoxType} using the algorithm outlined in the class javadoc
+	 * @param type The {@link BoxType} to look for (you can also use null to indicate an unexplored area)
+	 * @return The stack of moves to follow
+	 */
 	public Stack<Space> toType(BoxType type)
 	{
-		int input = 100;
-		int shortest = (bestCase == Integer.MAX_VALUE ? Tournament.maxSteps : bestCase);
-		boolean lastTry = false;
+		int input = SMALLEST_DELTA;		// Initial cutoff value for path length
+		int shortest = (bestCase == Integer.MAX_VALUE ? Tournament.maxSteps : bestCase);		// Absolute maximum cutoff value
+		boolean lastTry = false;		// If this is the last iteration we can perform before giving up
 
+		// Once we are using the maximum cutoff value as out cutoff, label this as the last iteration
 		if (input > shortest)
 		{
 			input = shortest;
@@ -1148,21 +1005,19 @@ class BruteForcePathfinder
 
 		while (true)
 		{
-			//			System.out.println(currentMap);
-			//			System.out.println(currentMap);
-			Stack<Space> result = toTypeSub(type, input);
+			Stack<Space> result = toTypeSub(type, input);		// Try getting a result for the current cutoff value
 
 			if (result != null)
 			{
 				return result;
 			}
 
-			input += 100;
+			input += SMALLEST_DELTA;	// Increase the cutoff value
 
-			if (lastTry)
+			if (lastTry)				// Time to give up
 				break;
 
-			if (input > shortest)
+			if (input > shortest)		// Once we are using the maximum cutoff value as out cutoff, label this as the last iteration
 			{
 				input = shortest;
 				lastTry = true;
@@ -1174,63 +1029,65 @@ class BruteForcePathfinder
 	}
 
 	/**
-	 * Finds the shortest path to a {@link BoxType} using the algorithm outlined in the class javadoc
-	 * @param type The {@link BoxType} to look for (you can also use null to indicate an unexplored area)
-	 * @return
+	 * Actually does the calculation trying to find the shortest path to a type
+	 * @param type The {@link BoxType} we are trying to get to
+	 * @param shortest The maximum path length
+	 * @return The stack of moves to follow
 	 */
-	public Stack<Space> toTypeSub(BoxType type, int shortest)
+	private Stack<Space> toTypeSub(BoxType type, int shortest)
 	{
-		System.out.println("Goal: " + type);
-		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
+		if (SchoolPlayer.VERBOSE)
+			System.out.println("Goal: " + type);
 
-		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
+		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
+		List<Path> paths = new ArrayList<>();		// List of paths we are still evaluating
 
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
-
-		boolean checkForDups = true;
 
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
 		{
 			System.out.println("=== STARTING ITERATION ===");
 			// Check for duplicates
-			if (checkForDups)
+			System.out.println("Checking for duplicates...");
+			List<Path> dups = new ArrayList<>();
+			for (int i = 0; i < paths.size(); i++)
 			{
-				System.out.println("Checking for duplicates...");
-				List<Path> dups = new ArrayList<>();
-				for (int i = 0; i < paths.size(); i++)
+				Path p = paths.get(i);
+				List<Space> pPath = p.getPath();
+
+				for (int j = i + 1; j < paths.size(); j++)
 				{
-					Path p = paths.get(i);
-					List<Space> pPath = p.getPath();
+					Path q = paths.get(j);
 
-					for (int j = i + 1; j < paths.size(); j++)
+					if (q.getPathSize() != p.getPathSize())
+						continue;
+
+					List<Space> qPath = q.getPath();
+
+					if (Path.pathsEqual(qPath, pPath))
 					{
-						Path q = paths.get(j);
-
-						if (q.getPathSize() != p.getPathSize())
-							continue;
-
-						List<Space> qPath = q.getPath();
-
-						if (Path.pathsEqual(qPath, pPath))
-						{
-							dups.add(q);
-						}
+						dups.add(q);
 					}
 				}
-
-				if (dups.size() < 10 && paths.size() > 5000)
-					checkForDups = false;		// Waste of time to search in future iterations
-
-				paths.removeAll(dups);
-				System.out.println("Finished Checking. Removed [" + dups.size() + "]");
 			}
+
+			int initialSize = paths.size();
+
+			paths.removeAll(dups);		// Remove all the duplicates (note that the dups list may contain duplicates within itself)
+
+			if (SchoolPlayer.VERBOSE)
+				System.out.println("Finished Checking. Removed [" + (initialSize - paths.size()) + "]");
+
+			dups = null;		// Clean up our references
 
 			// PART 1: For each path, see if there is a way to get to the goal without going through doors
 			// If there is, add the path to the solved list.
-			System.out.println("Looking for exit paths...");
+			if (SchoolPlayer.VERBOSE)
+				System.out.println("Looking for exit paths...");
+
 			Iterator<Path> itr = paths.iterator();
-			while (itr.hasNext())
+			while (itr.hasNext())		// Go through all the paths
 			{
 				Path p = itr.next();
 
@@ -1247,14 +1104,20 @@ class BruteForcePathfinder
 						shortest = p.getPathSize();
 				}
 			}
-			System.out.println("Solved: " + solved.size());
-			System.out.println("Shortest: " + shortest);
-			System.out.println("Paths: " + paths.size());
-			System.out.println();
+
+			if (SchoolPlayer.VERBOSE)
+			{
+				System.out.println("Solved Paths:  " + solved.size());
+				System.out.println("Shortest Path: " + shortest);
+				System.out.println("Total Paths:   " + paths.size());
+				System.out.println();
+			}
 
 			// PART 2: For each path, find all possible reasonable paths to keys
 
-			System.out.println("Looking for paths to keys...");
+			if (SchoolPlayer.VERBOSE)
+				System.out.println("Looking for paths to keys...");
+
 			List<Path> tempPaths = new ArrayList<>();
 
 			itr = paths.iterator();
@@ -1287,12 +1150,8 @@ class BruteForcePathfinder
 					}
 				}
 
-				// Copy the queue so we can poll from one and then access the data later 
-				//				Queue<Space> keysCopy = new LinkedList<>();
-				//				for (Space key : keys)
-				//					keysCopy.add(key);
-
-				if (keys.size() == 0 && p.getKeys() == 0)		// There are no more keys to get and we're out of keys. Kill the potential path.
+				// There are no more keys to get and we're out of keys. Kill the potential path.
+				if (keys.size() == 0 && p.getKeys() == 0)
 				{
 					itr.remove();
 					continue;
@@ -1371,6 +1230,9 @@ class BruteForcePathfinder
 							continue;
 						}
 
+						if (next.getPathSize() + toKey.size() > shortest)		// The path will be too long. Don't add it.
+							continue;
+
 						next.addToPath(toKey);		// Add the part to the path
 						tempPaths.add(next);		// Add the path to the list of paths
 
@@ -1380,22 +1242,20 @@ class BruteForcePathfinder
 			}
 
 			paths.addAll(tempPaths);			// To avoid ConcurrentModificationException
-			System.out.println("Added key paths. Total paths: " + paths.size());
-			System.out.println("Looking for paths to doors....");
+
+			if (SchoolPlayer.VERBOSE)
+			{
+				System.out.println("Added key paths. Total paths: " + paths.size());
+				System.out.println("Looking for paths to doors....");
+			}
 
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = new ArrayList<>();
 
 			itr = paths.iterator();
-			while (itr.hasNext())
+			while (itr.hasNext())		// Go through all the paths
 			{
 				Path p = itr.next();
-
-				if (p.getPathSize() > shortest)		// Prune paths that are already greater than the shortest one so far
-				{
-					itr.remove();
-					continue;
-				}
 
 				itr.remove();		// Don't need the original path anymore. We'll either give up on it or branch from it.
 
@@ -1415,7 +1275,11 @@ class BruteForcePathfinder
 						Stack<Space> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)			// No possible path to that door
 							continue;
-
+						
+						// The path will be too long. Don't add it.
+						if (toDoor.size() + p.getPathSize() > shortest)
+							continue;
+						
 						Path next = p.clone();		// Clone the original path
 
 						next.addToPath(toDoor);		// Add the path to the door to it
@@ -1487,7 +1351,6 @@ class Path
 		//		load(newMap);			// Clone the map
 
 		path = new ArrayList<>();
-		//		path.add(new SpaceWrapper(0, map.get(new Point(location))));	// Put our current location on the move stack
 		path.add(map.get(location));
 
 		//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
