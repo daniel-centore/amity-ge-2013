@@ -1275,11 +1275,11 @@ class BruteForcePathfinder
 						Stack<Space> toDoor = k.shortestToType(p.getLocation(), s);
 						if (toDoor == null)			// No possible path to that door
 							continue;
-						
+
 						// The path will be too long. Don't add it.
 						if (toDoor.size() + p.getPathSize() > shortest)
 							continue;
-						
+
 						Path next = p.clone();		// Clone the original path
 
 						next.addToPath(toDoor);		// Add the path to the door to it
@@ -1291,10 +1291,12 @@ class BruteForcePathfinder
 			paths.addAll(tempPaths);		// To avoid ConcurrentModificationException
 
 			tempPaths = new ArrayList<>();
-			System.out.println("Found paths to doors. Total paths: " + paths.size());
+
+			if (SchoolPlayer.VERBOSE)
+				System.out.println("Found paths to doors. Total paths: " + paths.size());
 		}
 
-		// END: Find the shortest path so far
+		// END: Find the shortest path in our solved list
 
 		Path ideal = null;
 		for (Path s : solved)
@@ -1323,22 +1325,27 @@ class BruteForcePathfinder
 
 /**
  * Represents a path we are simulating in a brute force
+ * We use these in a chain fashion so when one gets cloned, the clone links to the original to save memory
+ * You can thus only add to a Path and then the difference between the paths is stored
  * 
  * @author Daniel Centore
  *
  */
 class Path
 {
-	private HashMap<Point, Space> map;			// The current state of the map in this path
-	private int keys;							// The number of keys the player has
-	private ArrayList<Space> path;		// The path so far. The first element is first thing to perform
-	private int pathSize = 0;
+	// The current state of the map in this path.
+	// Only stores values that are different than the previous map on the chain
+	private HashMap<Point, Space> map;
 
-	private Path previous;
+	private int keys;							// The number of keys the player has
+	private ArrayList<Space> path;				// The path so far. The first element is first thing to perform
+	private int pathSize = 0;					// The path size
+
+	private Path previous;						// The previous path in the chain
 
 	/**
-	 * Creates a new Path
-	 * @param newMap The map to load (we do a deep clone of it. the original is not touched.)
+	 * Creates a new Path from scratch
+	 * @param newMap The map to load (we do a shallow clone of it but deep clone any objects before changing them)
 	 * @param location The player's current location
 	 * @param keys The number of keys the player has
 	 */
@@ -1347,28 +1354,10 @@ class Path
 		this.keys = keys;
 
 		map = new HashMap<>();
-		load2(newMap);
-		//		load(newMap);			// Clone the map
+		load2(newMap);		// Clone the map
 
-		path = new ArrayList<>();
+		path = new ArrayList<>();		// Add our current location to the path
 		path.add(map.get(location));
-
-		//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
-	}
-
-	public static boolean pathsEqual(List<Space> qPath, List<Space> pPath)
-	{
-		// Unnecessary b/c we do the calculation already
-		//		if (qPath.size() != pPath.size())
-		//			return false;
-
-		for (int i = qPath.size() - 1; i >= 0; i--)
-		{
-			if (!qPath.get(i).equals(pPath.get(i)))
-				return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -1376,6 +1365,7 @@ class Path
 	 * @param newMap The map to clone
 	 * @param keys Number of keys the player has
 	 * @param path The path so far
+	 * @param previous The previous node on the chain of paths
 	 */
 	private Path(HashMap<Point, Space> newMap, int keys, ArrayList<Space> path, Path previous)
 	{
@@ -1384,17 +1374,15 @@ class Path
 		map = new HashMap<>();
 
 		this.path = new ArrayList<>();
-		//		load2(newMap);
-		//		load(newMap);			// clone the map
-
-		//		this.path = (ArrayList<Space>) path.clone();		// shallow clone the old path
-
-		//		dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
 
 		this.previous = previous;
 		this.pathSize = previous.pathSize;
 	}
 
+	/**
+	 * Shallow copies the map
+	 * @param newMap The map to shallow copy
+	 */
 	private void load2(HashMap<Point, Space> newMap)
 	{
 		for (Space sp : newMap.values())
@@ -1415,11 +1403,9 @@ class Path
 	public void addToPath(Stack<Space> proceed)
 	{
 		proceed = (Stack<Space>) proceed.clone();
-		// Don't put on the first element of the path if it matches the last element of our current list
 
-		List<Space> temp = getPath();
-		if (proceed.peek().equals(temp.get(temp.size() - 1)))
-			proceed.pop();
+		// Don't put on the first element of the path as it matches the last element of our current list
+		proceed.pop();
 
 		while (!proceed.isEmpty())
 		{
@@ -1443,21 +1429,19 @@ class Path
 				pruneKeys();
 
 				keys--;
-				//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We open the door
-				cloneSpaceToMap(next).setType(BoxType.Open);
+				cloneSpaceToMap(next).setType(BoxType.Open);		// We open the door
 				break;
 
 			case Key:
 				keys++;
-				//				map.get(next.getSpace().getPoint()).setType(BoxType.Open);	// We pick up the key
-				cloneSpaceToMap(next).setType(BoxType.Open);
+				cloneSpaceToMap(next).setType(BoxType.Open);		// We pick up the key
 				break;
 
 			default:
 				break;
 			}
 
-			//			path.add(new SpaceWrapper(1, new Space(p.x, p.y, type)));		// Add the path element
+			// Add the path element
 			path.add(next);
 			pathSize++;
 		}
@@ -1469,6 +1453,7 @@ class Path
 	private void pruneKeys()
 	{
 		Dijkstras dijkstras = new Dijkstras(this.getKeys(), this.getLocation(), this.getMap(), -1);
+
 		for (Space s : this.getMap().values())
 		{
 			if (s.getType() == BoxType.Key)
@@ -1483,19 +1468,17 @@ class Path
 
 	}
 
+	/**
+	 * Clones a space that's in the map (which is also likely referenced elsewhere) and puts the clone in the map
+	 * @param me The {@link Space} to clone
+	 * @return The cloned spaces (so you can then make changes to it)
+	 */
 	private Space cloneSpaceToMap(Space me)
 	{
 		Point p = me.getPoint();
 
 		Space sp = new Space(me.getX(), me.getY(), me.getType());		// add space
 		map.put(p, sp);
-
-		// link space to surroundings
-
-		//		Point n = new Point(x, y + 1);
-		//		Point s = new Point(x, y - 1);
-		//		Point e = new Point(x + 1, y);
-		//		Point w = new Point(x - 1, y);
 
 		return sp;
 	}
@@ -1510,19 +1493,19 @@ class Path
 	}
 
 	/**
-	 * Gets the current state of the map for the path
+	 * Gets the current state of the map for this path
+	 * This is calculated on the fly based on the previous paths on the chain
 	 * @return The map
 	 */
 	public HashMap<Point, Space> getMap()
 	{
 		HashMap<Point, Space> temp = new HashMap<>();
-		//		temp.putAll(map);
 
 		Path p = this;
+		// Go through the chain
 		do
 		{
-			//			temp.putAll(p.map);
-			for (Space s : p.map.values())
+			for (Space s : p.map.values())		// Add all the spaces to the map
 			{
 				if (!temp.containsKey(s.getPoint()))
 					temp.put(s.getPoint(), s);
@@ -1536,6 +1519,7 @@ class Path
 
 	/**
 	 * Gets the current simulation's location
+	 * WARNING: This is slow so save the value and reuse it if possible
 	 * @return The player's current location
 	 */
 	public Point getLocation()
@@ -1547,11 +1531,12 @@ class Path
 
 	/**
 	 * Gets the current simulation path
+	 * This is calculated on the fly based on the previous paths on the chain
 	 * @return The current path
 	 */
 	public List<Space> getPath()
 	{
-		Stack<Path> backward = new Stack<>();
+		Stack<Path> backward = new Stack<>();		// Fills up the path backward on a stack
 
 		Path p = this;
 
@@ -1565,6 +1550,7 @@ class Path
 		List<Space> result = new ArrayList<>();
 
 		while (!backward.isEmpty())
+			// Pop them back off in the right order
 			result.addAll(backward.pop().path);
 
 		return result;
@@ -1576,14 +1562,32 @@ class Path
 		return "Path [path=" + path + "]";
 	}
 
+	/**
+	 * Gets the path's current size
+	 * This is saved so it is much faster that getPath().size()
+	 * @return The size of the path
+	 */
 	public int getPathSize()
 	{
 		return pathSize;
 	}
 
-	public Path getPrevious()
+	/**
+	 * Checks if two paths are equal
+	 * This is optimized to be very quick for comparisons when we check for duplicates in the brute force
+	 * @param qPath The first path
+	 * @param pPath The second path
+	 * @return True if they are equal; false otherwise
+	 */
+	public static boolean pathsEqual(List<Space> qPath, List<Space> pPath)
 	{
-		return previous;
+		for (int i = qPath.size() - 1; i >= 0; i--)
+		{
+			if (!qPath.get(i).equals(pPath.get(i)))
+				return false;
+		}
+
+		return true;
 	}
 }
 
@@ -1642,73 +1646,50 @@ class LearningTracker
 	}
 }
 
+/**
+ * Tools for processing maps which aren't part of {@link FieldMap} (ie those within paths)
+ * 
+ * @author Daniel Centore
+ *
+ */
 class MapUtils
 {
+	/**
+	 * Finds all unblocked spaces surrounding a space
+	 * @param map The map to look in
+	 * @param sp The space to look around
+	 * @param unexp What to represent "unknown" with
+	 * @return
+	 */
 	public static List<Space> findSurroundingSpaces(HashMap<Point, Space> map, Space sp, Space unexp)
 	{
 		List<Space> result = new ArrayList<>();
 
 		Point p = sp.getPoint();
 
+		// The spaces in each of the directions
 		Point n = new Point(p.x, p.y + 1);
 		Point s = new Point(p.x, p.y - 1);
 		Point e = new Point(p.x + 1, p.y);
 		Point w = new Point(p.x - 1, p.y);
 
-		Point g;
+		Point[] points = { n, s, e, w };
 
 		boolean u = false;
 
-		g = n;
-		if (map.containsKey(g))
+		for (Point g : points)
 		{
-			Space k = map.get(g);
-			if (k.getType() != BoxType.Blocked)
-				result.add(k);
-		}
-		else if (!u)
-		{
-			result.add(unexp);
-			u = true;
-		}
-
-		g = s;
-		if (map.containsKey(g))
-		{
-			Space k = map.get(g);
-			if (k.getType() != BoxType.Blocked)
-				result.add(k);
-		}
-		else if (!u)
-		{
-			result.add(unexp);
-			u = true;
-		}
-
-		g = e;
-		if (map.containsKey(g))
-		{
-			Space k = map.get(g);
-			if (k.getType() != BoxType.Blocked)
-				result.add(k);
-		}
-		else if (!u)
-		{
-			result.add(unexp);
-			u = true;
-		}
-
-		g = w;
-		if (map.containsKey(g))
-		{
-			Space k = map.get(g);
-			if (k.getType() != BoxType.Blocked)
-				result.add(k);
-		}
-		else if (!u)
-		{
-			result.add(unexp);
-			u = true;
+			if (map.containsKey(g))
+			{
+				Space k = map.get(g);
+				if (k.getType() != BoxType.Blocked)
+					result.add(k);
+			}
+			else if (!u)		// If the space is not known and we have not yet added the unknown space, then add it
+			{
+				result.add(unexp);
+				u = true;
+			}
 		}
 
 		return result;
