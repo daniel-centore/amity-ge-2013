@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
+
 import com.csc2013.Dijkstras.GetKeyException;
 import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
@@ -31,12 +33,15 @@ import com.csc2013.DungeonMaze.Direction;
  */
 public class SchoolPlayer
 {
+	public static final boolean VERBOSE = true;
+
 	// The data that we save across all runs
-	private static LearningTracker LEARNING_TRACKER = new LearningTracker();
+	private static final LearningTracker LEARNING_TRACKER = new LearningTracker();
 
 	public FieldMap map = new FieldMap(LEARNING_TRACKER);		// The map for the current game
-	private Stack<Space> currentStack = null;			// The current stack of moves we're following
+	private Stack<Space> currentStack = null;					// The current stack of moves we're following
 	private int moves = 0;										// The number of moves we've taken so far
+	private boolean giveUp = false;								// True if we have issued any bad moves and want to give up
 
 	/** 
 	 * Called by the GE code.
@@ -49,8 +54,16 @@ public class SchoolPlayer
 	 */
 	public Action nextMove(final PlayerVision vision, final int keyCount, final boolean lastAction)
 	{
-		if (!lastAction)			// We failed last time, so let's not further destroy the map
-			return Action.South;
+		if (!lastAction || giveUp)			// We failed, so let's just give up.
+		{
+			if (VERBOSE)
+				System.out.println("FAILED. JUST DOING RANDOM MOVES.");
+
+			giveUp = true;
+
+			// Pick a random move that is possible to go to
+			return getSimpleAction(vision);
+		}
 
 		Action action = null;
 		try
@@ -61,7 +74,9 @@ public class SchoolPlayer
 			// In case something goes horribly wrong, this is better than getting disqualified.
 			t.printStackTrace();
 
-			return Action.South;
+			giveUp = true;
+
+			return getSimpleAction(vision);
 		}
 
 		// Apply the action we are about to take to our own map
@@ -92,9 +107,30 @@ public class SchoolPlayer
 			break;
 		}
 
-		//		System.out.println(action);
-
 		return action;
+	}
+
+	/**
+	 * Comes up with a legal move. This is the "everything else failed" plan.
+	 * @param vision The current vision
+	 * @return A legal {@link Action}
+	 */
+	private Action getSimpleAction(PlayerVision vision)
+	{
+		if (vision.CurrentPoint.North != BoxType.Blocked)
+			return Action.North;
+
+		if (vision.CurrentPoint.South != BoxType.Blocked)
+			return Action.South;
+
+		if (vision.CurrentPoint.East != BoxType.Blocked)
+			return Action.East;
+
+		if (vision.CurrentPoint.West != BoxType.Blocked)
+			return Action.West;
+
+		// This should never happen (then again, this method shouldn't be running at all either)
+		return Action.Use;
 	}
 
 	/**
@@ -1146,44 +1182,44 @@ class BruteForcePathfinder
 		this.currentMap = currentMap;
 		this.bestCase = bestCase;
 	}
-	
+
 	public Stack<Space> toType(BoxType type)
 	{
 		int input = 100;
 		int shortest = (bestCase == Integer.MAX_VALUE ? Tournament.maxSteps : bestCase);
 		boolean lastTry = false;
-		
+
 		if (input > shortest)
 		{
 			input = shortest;
 			lastTry = true;
 		}
-		
+
 		while (true)
 		{
-//			System.out.println(currentMap);
-//			System.out.println(currentMap);
+			//			System.out.println(currentMap);
+			//			System.out.println(currentMap);
 			Stack<Space> result = toTypeSub(type, input);
-			
+
 			if (result != null)
 			{
 				return result;
 			}
-			
+
 			input += 100;
-			
+
 			if (lastTry)
 				break;
-			
+
 			if (input > shortest)
 			{
 				input = shortest;
 				lastTry = true;
 			}
 		}
-		
+
 		return null;
-		
+
 	}
 
 	/**
@@ -1199,8 +1235,6 @@ class BruteForcePathfinder
 		List<Path> paths = new ArrayList<>();								// List of paths we are still evaluating
 
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
-
-		
 
 		boolean checkForDups = true;
 
