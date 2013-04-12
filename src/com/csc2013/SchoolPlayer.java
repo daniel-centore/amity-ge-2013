@@ -32,7 +32,7 @@ import com.csc2013.DungeonMaze.Direction;
 public class SchoolPlayer
 {
 	// Print out debug data?
-	public static final boolean VERBOSE = true;
+	public static final boolean VERBOSE = false;
 
 	// The data that we save across all runs
 	private static final LearningTracker LEARNING_TRACKER = new LearningTracker();
@@ -599,7 +599,7 @@ class Space
 	{
 		return removed;
 	}
-	
+
 	/**
 	 * Sets if the space has been visited/removed from the graph
 	 * @param removed True if it has been removed; False otherwise
@@ -1078,9 +1078,12 @@ class BruteForcePathfinder
 		// While there are still paths to evaluate, evaluate them!
 		while (paths.size() > 0)
 		{
-			System.out.println("=== STARTING ITERATION ===");
+			if (SchoolPlayer.VERBOSE)
+			{
+				System.out.println("=== STARTING ITERATION ===");
+				System.out.println("Checking for duplicates...");
+			}
 			// Check for duplicates
-			System.out.println("Checking for duplicates...");
 			List<Path> dups = new ArrayList<>();
 			for (int i = 0; i < paths.size(); i++)
 			{
