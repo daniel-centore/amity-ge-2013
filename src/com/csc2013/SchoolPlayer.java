@@ -1151,13 +1151,52 @@ class BruteForcePathfinder
 		this.currentMap = currentMap;
 		this.bestCase = bestCase;
 	}
+	
+	public Stack<Space> toType(BoxType type)
+	{
+		int input = 100;
+		int shortest = (bestCase == Integer.MAX_VALUE ? Tournament.maxSteps : bestCase);
+		boolean lastTry = false;
+		
+		if (input > shortest)
+		{
+			input = shortest;
+			lastTry = true;
+		}
+		
+		while (true)
+		{
+//			System.out.println(currentMap);
+//			System.out.println(currentMap);
+			Stack<Space> result = toTypeSub(type, input);
+			
+			if (result != null)
+			{
+				return result;
+			}
+			
+			input += 100;
+			
+			if (lastTry)
+				break;
+			
+			if (input > shortest)
+			{
+				input = shortest;
+				lastTry = true;
+			}
+		}
+		
+		return null;
+		
+	}
 
 	/**
 	 * Finds the shortest path to a {@link BoxType} using the algorithm outlined in the class javadoc
 	 * @param type The {@link BoxType} to look for (you can also use null to indicate an unexplored area)
 	 * @return
 	 */
-	public Stack<Space> toType(BoxType type)
+	public Stack<Space> toTypeSub(BoxType type, int shortest)
 	{
 		System.out.println("Goal: " + type);
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
@@ -1166,7 +1205,7 @@ class BruteForcePathfinder
 
 		paths.add(new Path(currentMap, currentLocation, currentKeys));		// Add an initial path which we'll branch off of
 
-		int shortest = Math.min(bestCase, Tournament.maxSteps);
+		
 
 		boolean checkForDups = true;
 
