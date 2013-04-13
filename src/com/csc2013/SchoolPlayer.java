@@ -14,6 +14,7 @@ import com.csc2013.Dijkstras.GetKeyException;
 import com.csc2013.DungeonMaze.Action;
 import com.csc2013.DungeonMaze.BoxType;
 import com.csc2013.DungeonMaze.Direction;
+import com.csc2013.DungeonMaze.MoveType;
 
 /**
  * 
@@ -32,7 +33,7 @@ import com.csc2013.DungeonMaze.Direction;
 public class SchoolPlayer
 {
 	// Print out debug data?
-	public static final boolean VERBOSE = false;
+	public static final boolean VERBOSE = true;
 
 	// The data that we save across all runs
 	private static final LearningTracker LEARNING_TRACKER = new LearningTracker();
@@ -117,16 +118,16 @@ public class SchoolPlayer
 	 */
 	private Action getSimpleAction(PlayerVision vision)
 	{
-		if (vision.CurrentPoint.North != BoxType.Blocked)
+		if (vision.CurrentPoint.NorthMove != MoveType.Blocked)
 			return Action.North;
 
-		if (vision.CurrentPoint.South != BoxType.Blocked)
+		if (vision.CurrentPoint.SouthMove != MoveType.Blocked)
 			return Action.South;
 
-		if (vision.CurrentPoint.East != BoxType.Blocked)
+		if (vision.CurrentPoint.EastMove != MoveType.Blocked)
 			return Action.East;
 
-		if (vision.CurrentPoint.West != BoxType.Blocked)
+		if (vision.CurrentPoint.WestMove != MoveType.Blocked)
 			return Action.West;
 
 		// This should never happen (then again, this method shouldn't be running at all either)
@@ -999,7 +1000,7 @@ class BruteForcePathfinder
 	private int currentKeys;					// How many keys we have right now
 	private Point currentLocation;				// Our actual current location
 	private HashMap<Point, Space> currentMap;	// Our actual current map
-	private int bestCase;						// The best exit case we have encountered so far (or Integer.MAX_VALUE if it has not yet been solved) 
+	private int bestCase;						// The best exit case we have encountered so far (or Integer.MAX_VALUE if it has not yet been solved)
 
 	/**
 	 * Instantiates the class
@@ -1070,6 +1071,7 @@ class BruteForcePathfinder
 		if (SchoolPlayer.VERBOSE)
 			System.out.println("Goal: " + type);
 
+		int iteration = 1;
 		List<Path> solved = new ArrayList<>();		// List of paths that lead to an exit
 		List<Path> paths = new ArrayList<>();		// List of paths we are still evaluating
 
@@ -1080,7 +1082,8 @@ class BruteForcePathfinder
 		{
 			if (SchoolPlayer.VERBOSE)
 			{
-				System.out.println("=== STARTING ITERATION ===");
+				System.out.println();
+				System.out.println("=== STARTING ITERATION "+(iteration++)+" ===");
 				System.out.println("Checking for duplicates...");
 			}
 			// Check for duplicates
@@ -1088,7 +1091,7 @@ class BruteForcePathfinder
 			for (int i = 0; i < paths.size(); i++)
 			{
 				Path p = paths.get(i);
-				List<Space> pPath = p.getPath();
+				List<Space> pPath = p.getPath();		// TODO: Try generating this only when we actually encounter one that's the same size
 
 				for (int j = i + 1; j < paths.size(); j++)
 				{

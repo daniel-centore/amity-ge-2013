@@ -23,12 +23,12 @@ public class Tournament {
 	 * map02.tmx
 	 * map03.tmx
 	 */
-	public final static String maps[] = {"map02.tmx"};
+	public final static String maps[] = {"map02.tmx","map01.tmx","map03.tmx","map03.tmx","map01.tmx","map01.tmx",};
 	/*
 	 * This is how many spaces ahead players can see.  Acceptable values 
 	 * are 1 through 15.	
 	 */
-	public final static int vision[] = {10, 5,15,1,2};
+	public final static int vision[] = {10, 5,15,1,2,10};
 	/*
 	 * Possible players are:
 	 * PlayerType.AI
