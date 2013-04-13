@@ -800,6 +800,24 @@ class Dijkstras
 	{
 		return shortestToType(start, null, goal);
 	}
+	
+	// If reverse is true, checks in reverse order (fails faster
+	public Stack<Space> shortestToType(Point start, Space goal, boolean reverse)
+	{
+		if (!reverse)
+			return shortestToType(start, goal);
+		
+		Stack<Space> stack = shortestToType(goal.getPoint(), null, map.get(start));
+		if (stack  == null)
+				return null;
+		
+		Stack<Space> result = new Stack<>();
+		
+		while (!stack.isEmpty())
+			result.add(stack.pop());
+		
+		return result;
+	}
 
 	/**
 	 * Finds the shortest path from a {@link Point} to a goal using Dijkstra's algorithm.
@@ -814,6 +832,10 @@ class Dijkstras
 	 */
 	private Stack<Space> shortestToType(Point start, BoxType type, Space goal)
 	{
+		if (goal != null)
+		{
+			
+		}
 		if (!map.containsKey(INFI))		// Add unknown as a possible goal
 			map.put(INFI, UNEXP);
 
@@ -1301,15 +1323,17 @@ class BruteForcePathfinder
 					// We can't go to a door from this path because there are no keys left
 					continue;
 				}
-
+				Point pLoc = p.getLocation();
+				
 				// Get a list of all doors that we can walk to without going through other doors
-				Dijkstras k = new Dijkstras(p.getKeys(), p.getLocation(), p.getMap(), -1);
+				Dijkstras k = new Dijkstras(p.getKeys(), pLoc, p.getMap(), -1);
 
 				for (Space s : p.getMap().values())
 				{
 					if (s.getType() == BoxType.Door)
 					{
-						Stack<Space> toDoor = k.shortestToType(p.getLocation(), s);
+						Stack<Space> toDoor = k.shortestToType(pLoc, s, true);
+						
 						if (toDoor == null)			// No possible path to that door
 							continue;
 
@@ -1318,13 +1342,14 @@ class BruteForcePathfinder
 							continue;
 
 						Path next = p.clone();		// Clone the original path
-
+						
 						next.addToPath(toDoor);		// Add the path to the door to it
 						tempPaths.add(next);		// Add it to the list of paths
+						
 					}
 				}
 			}
-
+			
 			paths.addAll(tempPaths);		// To avoid ConcurrentModificationException
 
 			tempPaths = new ArrayList<>();
@@ -1437,12 +1462,14 @@ class Path
 	 * @param proceed The path to add onto it
 	 */
 	@SuppressWarnings("unchecked")
-	public void addToPath(Stack<Space> proceed)
+	public long addToPath(Stack<Space> proceed)
 	{
 		proceed = (Stack<Space>) proceed.clone();
 
 		// Don't put on the first element of the path as it matches the last element of our current list
 		proceed.pop();
+		
+		long time = 0;
 
 		while (!proceed.isEmpty())
 		{
@@ -1463,7 +1490,9 @@ class Path
 				// Pretend any keys inside an area are nonexistant after we've opened a door.
 				// This is a pretty good approximation although not a perfect one.
 				// Without this pruning, the number of brute force paths quickly gets out of hand
+				long k = System.currentTimeMillis();
 				pruneKeys();
+				time += System.currentTimeMillis() - k;
 
 				keys--;
 				cloneSpaceToMap(next).setType(BoxType.Open);		// We open the door
@@ -1482,6 +1511,8 @@ class Path
 			path.add(next);
 			pathSize++;
 		}
+		
+		return time;
 	}
 
 	/**
