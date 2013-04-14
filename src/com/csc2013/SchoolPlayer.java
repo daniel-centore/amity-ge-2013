@@ -33,7 +33,7 @@ import com.csc2013.DungeonMaze.MoveType;
 public class SchoolPlayer
 {
 	// Print out debug data?
-	public static final boolean VERBOSE = true;
+	public static final boolean VERBOSE = false;
 
 	// The data that we save across all runs
 	private static final LearningTracker LEARNING_TRACKER = new LearningTracker();
@@ -1134,6 +1134,7 @@ class BruteForcePathfinder
 						shortest = p.getPathSize();
 				}
 			}
+			itr = null;
 
 			if (SchoolPlayer.VERBOSE)
 			{
@@ -1156,12 +1157,11 @@ class BruteForcePathfinder
 				System.out.println("Added key paths. Total paths: " + paths.size());
 				System.out.println("Looking for paths to doors....");
 			}
-
+			tempPaths = null;
+			
 			// PART 3: For all paths, find all possible paths to doors
 			tempPaths = toDoors(paths, shortest);
 			paths.addAll(tempPaths);
-
-			tempPaths = new ArrayList<>();
 
 			if (SchoolPlayer.VERBOSE)
 				System.out.println("Found paths to doors. Total paths: " + paths.size());
@@ -1396,7 +1396,7 @@ class BruteForcePathfinder
 
 			// Only looks a maximum of 10000 spaces ahead in the list.
 			// This approximation works for most cases and really speeds things up
-			for (int j = i + 1; j < Math.min(10000, paths.size()); j++)
+			for (int j = i + 1; j < Math.min(Integer.MAX_VALUE, paths.size()); j++)
 			{
 				Path q = paths.get(j);
 
