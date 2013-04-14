@@ -1298,6 +1298,8 @@ class BruteForcePathfinder
 				if (s.getType() == BoxType.Door)
 					doors++;
 			}
+			
+			doors -= p.getKeys();		// Subtract the number of keys to find the number of doors which need keys
 
 			// Generate a list of keys in each direction
 			// This generates a list of lists such that the first list contains all keys in order of increasing distance in one
@@ -1352,7 +1354,7 @@ class BruteForcePathfinder
 				for (Space s : list)		// Go through all spaces in the current direction list
 				{
 					i++;
-					if (i > doors - next.getKeys())		// If we are on more keys than there are doors, scrap the paths
+					if (i > doors)		// If we are on more keys than there are doors, scrap the paths
 						break;
 
 					k = new Dijkstras(next.getKeys(), next.getLocation(), next.getMap(), -1);
@@ -1521,7 +1523,7 @@ class Path
 				// This is a pretty good approximation although not a perfect one.
 				// Without this pruning, the number of brute force paths quickly gets out of hand
 				long k = System.currentTimeMillis();
-//				pruneKeys();
+				pruneKeys();
 				time += System.currentTimeMillis() - k;
 
 				keys--;
